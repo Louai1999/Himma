@@ -31,6 +31,11 @@ public sealed class HimmaApiFactory : WebApplicationFactory<Program>
         builder.UseSetting("ConnectionStrings:Sqlite", _connectionString);
         builder.UseSetting("Admin:Username", AdminUsername);
         builder.UseSetting("Admin:Password", AdminPassword);
+        builder.UseSetting("Jwt:Key", Convert.ToBase64String(System.Security.Cryptography.RandomNumberGenerator.GetBytes(48)));
+
+        // All test requests come from the same (empty) IP, so lift the limits; one test checks them explicitly.
+        builder.UseSetting("RateLimiting:Auth:PermitLimit", "100000");
+        builder.UseSetting("RateLimiting:Api:PermitLimit", "100000");
     }
 
     protected override void Dispose(bool disposing)

@@ -7,7 +7,7 @@ namespace Himma.Api.Infrastructure.Identity;
 public static class IdentitySetup
 {
     /// <summary>
-    /// Identity core only (no cookie auth). JWT bearer auth and the sign-in flow are added in phase 2.
+    /// Identity core only (no cookie auth); sign-in is JWT based, see AuthSetup.
     /// Passwords are hashed by Identity's PBKDF2 hasher.
     /// </summary>
     public static IServiceCollection AddHimmaIdentity(this IServiceCollection services)
@@ -15,7 +15,7 @@ public static class IdentitySetup
         services
             .AddIdentityCore<ApplicationUser>(options =>
             {
-                // Length matters more than character classes; very common passwords are blocked in phase 2.
+                // Length matters more than character classes; common passwords are blocked by CommonPasswordValidator.
                 options.Password.RequiredLength = 8;
                 options.Password.RequireDigit = false;
                 options.Password.RequireLowercase = false;
@@ -30,7 +30,9 @@ public static class IdentitySetup
                 options.User.RequireUniqueEmail = false;
             })
             .AddRoles<IdentityRole>()
-            .AddEntityFrameworkStores<AppDbContext>();
+            .AddEntityFrameworkStores<AppDbContext>()
+            .AddErrorDescriber<ArabicIdentityErrorDescriber>()
+            .AddPasswordValidator<CommonPasswordValidator>();
 
         return services;
     }

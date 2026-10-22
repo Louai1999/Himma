@@ -8,12 +8,15 @@ The full step-by-step Arabic guide comes in phase 8; this is the short version.
 1. Install the .NET 8 SDK (or newer) and make sure the .NET 8 runtime is installed.
 2. Trust the HTTPS development certificate (once per machine):
    `dotnet dev-certs https --trust`
-3. Set the admin secrets (stored outside the repo, in your user profile):
+3. Set the secrets (stored outside the repo, in your user profile):
    ```
    cd src/Himma.Api
    dotnet user-secrets set "Admin:Username" "your-admin-name"
    dotnet user-secrets set "Admin:Password" "a-long-password-you-choose"
+   dotnet user-secrets set "Jwt:Key" "<at least 32 random characters>"
    ```
+   A good random key (PowerShell):
+   `[Convert]::ToBase64String([Security.Cryptography.RandomNumberGenerator]::GetBytes(48))`
 4. Run: open `Himma.sln` in Visual Studio and press F5 (profile `https`),
    or run `dotnet run --launch-profile https` inside `src/Himma.Api`.
 5. Open https://localhost:7099 . In Development the database (`himma.db`) is created
@@ -28,9 +31,10 @@ The full step-by-step Arabic guide comes in phase 8; this is the short version.
 | Key | Used for | Where |
 | --- | --- | --- |
 | `Admin:Username`, `Admin:Password` | seeded admin account | user-secrets / env vars |
+| `Jwt:Key` | signs login tokens (changing it signs everyone out) | user-secrets / env var `Jwt__Key` |
 | `ConnectionStrings:Postgres` | production database | env var `ConnectionStrings__Postgres` |
 
-More keys (`Jwt:Key`, `Anthropic:ApiKey`) are added in later phases.
+`Anthropic:ApiKey` is added in phase 4.
 
 ## Migrations
 
