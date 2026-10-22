@@ -89,7 +89,12 @@ app.UseMiddleware<SecurityHeadersMiddleware>();
 app.UseSerilogRequestLogging();
 
 app.UseDefaultFiles();
-app.UseStaticFiles();
+app.UseStaticFiles(new StaticFileOptions
+{
+    // The frontend has no build step (no hashed file names), so browsers must revalidate
+    // (cheap, via ETag) to pick up a new version right after a deploy.
+    OnPrepareResponse = context => context.Context.Response.Headers.CacheControl = "no-cache",
+});
 
 if (app.Environment.IsDevelopment())
 {

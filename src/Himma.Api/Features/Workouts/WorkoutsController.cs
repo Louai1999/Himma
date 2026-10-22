@@ -183,6 +183,27 @@ public sealed class WorkoutsController(AppDbContext db, LastPerformanceQuery las
         var exerciseIds = planned.Select(i => i.ExerciseId).Concat(sets.Select(s => s.ExerciseId)).Distinct().ToList();
         var last = await lastPerformance.GetAsync(session.UserId, exerciseIds, session.Id, cancellationToken);
 
+        var exercises = planned.Select(i => new SessionExerciseDto(
+            ExerciseDto.From(i.Exercise!), i.Sets, i.Reps, i.WeightKg, i.RestSeconds, i.Notes,
+            last.GetValueOrDefault(i.ExerciseId))).ToList();
+
+        // Exercises logged outside the plan (free workouts, or one added during the session) are listed too.
+        var plannedIds = planned.Select(i => i.ExerciseId).ToHashSet();
+        var extraIds = sets.Select(s => s.ExerciseId).Where(id => !plannedIds.Contains(id)).Distinct().ToList();
+        if (extraIds.Count > 0)
+        {
+            var extras = await db.Exercises.AsNoTracking()
+                .Where(e => extraIds.Contains(e.Id))
+                .ToDictionaryAsync(e => e.Id, cancellationToken);
+            exercises.AddRange(extraIds.Where(extras.ContainsKey).Select(id =>
+            {
+                var logged = sets.Where(s => s.ExerciseId == id).ToList();
+                return new SessionExerciseDto(
+                    ExerciseDto.From(extras[id]), logged.Count, logged.Max(s => s.Reps), null, null, null,
+                    last.GetValueOrDefault(id));
+            }));
+        }
+
         return new SessionDto(
             session.Id,
             session.Date,
@@ -191,9 +212,7 @@ public sealed class WorkoutsController(AppDbContext db, LastPerformanceQuery las
             day?.Plan?.Name,
             session.StartedAtUtc,
             session.CompletedAtUtc,
-            planned.Select(i => new SessionExerciseDto(
-                ExerciseDto.From(i.Exercise!), i.Sets, i.Reps, i.WeightKg, i.RestSeconds, i.Notes,
-                last.GetValueOrDefault(i.ExerciseId))).ToList(),
+            exercises,
             sets.Select(SetLogDto.From).ToList());
     }
 }

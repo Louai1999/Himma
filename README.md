@@ -22,6 +22,16 @@ The full step-by-step Arabic guide comes in phase 8; this is the short version.
 5. Open https://localhost:7099 . In Development the database (`himma.db`) is created
    and migrated automatically.
 
+## Frontend
+
+The app (`src/Himma.Api/wwwroot`) is plain HTML, CSS and JavaScript modules served by the API,
+so there is no build step and no Live Server: run the API and open https://localhost:7099.
+
+- Logo: put your `himma-logo.png` in `src/Himma.Api/wwwroot/assets/`. Until then the bundled
+  `himma-logo.svg` is used.
+- Security: the page never builds HTML from text (no `innerHTML`); everything goes through
+  `js/ui/dom.js`, which only creates elements and text nodes.
+
 ## Tests
 
 `dotnet test` from the repository root.
@@ -34,7 +44,7 @@ The full step-by-step Arabic guide comes in phase 8; this is the short version.
 | `Jwt:Key` | signs login tokens (changing it signs everyone out) | user-secrets / env var `Jwt__Key` |
 | `ConnectionStrings:Postgres` | production database | env var `ConnectionStrings__Postgres` |
 
-`Anthropic:ApiKey` is added in phase 4.
+`Anthropic:ApiKey` (AI coach and meal estimates) comes with the second release.
 
 ## Migrations
 

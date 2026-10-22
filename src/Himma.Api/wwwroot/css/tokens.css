@@ -5,8 +5,10 @@
   --ink-soft: #6E655A;
   --forest: #2F4A3C;
   --forest-light: #436656;
+  --forest-pale: #E6EEE9;
   --rust: #C1622D;
   --gold: #D9A441;
+  --gold-pale: #F8EDD5;
   --line: #E2D7C2;
   --danger: #B23A2E;
   --water: #3E7CB1;
@@ -16,6 +18,12 @@
   --font-number: "IBM Plex Mono", ui-monospace, monospace;
 
   --radius: 16px;
+  --radius-sm: 10px;
   --shadow: 0 2px 10px rgba(43, 38, 32, 0.08);
+  --shadow-lift: 0 6px 18px rgba(43, 38, 32, 0.12);
+
+  /* Spring-like settle, used for most motion. */
   --ease-settle: cubic-bezier(.22, 1, .36, 1);
+  --press: 60ms;
+  --settle: 320ms;
 }

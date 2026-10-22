@@ -348,10 +348,13 @@ public sealed class WorkoutTests(HimmaApiFactory factory) : IClassFixture<HimmaA
         var squat = await WorkoutApi.SystemExerciseAsync(user.Client, ExerciseSeedData.Squats);
 
         var session = await (await WorkoutApi.StartSessionAsync(user.Client, UserApi.Today, null)).ReadAsync<SessionDto>();
-        var saved = await WorkoutApi.SaveSetsAsync(user.Client, session.Id, (squat.Id, 1, 15, null, true));
+        var saved = await (await WorkoutApi.SaveSetsAsync(user.Client, session.Id, (squat.Id, 1, 15, null, true), (squat.Id, 2, 12, null, true)))
+            .ReadAsync<SessionDto>();
 
         Assert.Empty(session.Exercises);
-        Assert.Equal(HttpStatusCode.OK, saved.StatusCode);
+        var logged = Assert.Single(saved.Exercises);
+        Assert.Equal(squat.Id, logged.Exercise.Id);
+        Assert.Equal(2, logged.PlannedSets);
     }
 
     [Fact]
