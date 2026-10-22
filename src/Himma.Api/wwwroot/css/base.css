@@ -1,0 +1,31 @@
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: var(--font-body);
+  color: var(--ink);
+  background-color: var(--bg);
+  background-image: radial-gradient(var(--line) 1px, transparent 1px);
+  background-size: 18px 18px;
+}
+
+h1, h2, h3 { font-family: var(--font-heading); color: var(--forest); }
+
+a { color: var(--forest-light); }
+
+.card {
+  background: var(--paper);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 24px;
+}
+
+.muted { color: var(--ink-soft); }
+
+.placeholder {
+  max-width: 480px;
+  margin: 15vh auto 0;
+  padding: 0 16px;
+  text-align: center;
+}

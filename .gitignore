@@ -1,0 +1,29 @@
+# Build output
+bin/
+obj/
+TestResults/
+
+# IDE
+.vs/
+.vscode/
+*.user
+*.suo
+
+# Local databases (never commit user data)
+*.db
+*.db-shm
+*.db-wal
+
+# Logs
+logs/
+
+# Local secrets / overrides
+.env
+.env.*
+appsettings.*.local.json
+appsettings.Production.json
+secrets.json
+*.pfx
+*.p12
+*.pem
+*.key
