@@ -22,7 +22,7 @@ public sealed class AuthTests(HimmaApiFactory factory) : IClassFixture<HimmaApiF
         var response = await AuthApi.RegisterAsync(_client, AuthApi.NewUsername(), AuthApi.NewPassword());
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-        var body = await response.Content.ReadFromJsonAsync<AuthResponse>();
+        var body = await response.Content.ReadFromJsonAsync<AuthResponse>(TestJson.Options);
         Assert.False(string.IsNullOrEmpty(body!.AccessToken));
         Assert.InRange(body.ExpiresAtUtc, DateTime.UtcNow.AddMinutes(14), DateTime.UtcNow.AddMinutes(16));
 
@@ -38,7 +38,7 @@ public sealed class AuthTests(HimmaApiFactory factory) : IClassFixture<HimmaApiF
     {
         var response = await AuthApi.RegisterAsync(_client, AuthApi.NewUsername(), AuthApi.NewPassword());
 
-        var body = await response.Content.ReadFromJsonAsync<AuthResponse>();
+        var body = await response.Content.ReadFromJsonAsync<AuthResponse>(TestJson.Options);
         Assert.Equal([Roles.User], body!.User.Roles);
     }
 
@@ -86,7 +86,7 @@ public sealed class AuthTests(HimmaApiFactory factory) : IClassFixture<HimmaApiF
         var response = await AuthApi.RegisterAsync(_client, AuthApi.NewUsername(), password);
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        var problem = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
+        var problem = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>(TestJson.Options);
         Assert.True(problem!.Errors.ContainsKey("password"));
     }
 
@@ -156,8 +156,8 @@ public sealed class AuthTests(HimmaApiFactory factory) : IClassFixture<HimmaApiF
 
         Assert.Equal(HttpStatusCode.Unauthorized, wrongPassword.StatusCode);
         Assert.Equal(HttpStatusCode.Unauthorized, unknownUser.StatusCode);
-        var a = await wrongPassword.Content.ReadFromJsonAsync<ProblemDetails>();
-        var b = await unknownUser.Content.ReadFromJsonAsync<ProblemDetails>();
+        var a = await wrongPassword.Content.ReadFromJsonAsync<ProblemDetails>(TestJson.Options);
+        var b = await unknownUser.Content.ReadFromJsonAsync<ProblemDetails>(TestJson.Options);
         Assert.Equal(a!.Title, b!.Title);
         Assert.Equal(a.Detail, b.Detail);
     }
@@ -295,7 +295,7 @@ public sealed class AuthTests(HimmaApiFactory factory) : IClassFixture<HimmaApiF
         var response = await AuthApi.ChangePasswordAsync(_client, session.AccessToken, AuthApi.NewPassword(), AuthApi.NewPassword());
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        var problem = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
+        var problem = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>(TestJson.Options);
         Assert.True(problem!.Errors.ContainsKey("currentPassword"));
     }
 

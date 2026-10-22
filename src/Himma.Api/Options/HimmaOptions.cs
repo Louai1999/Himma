@@ -42,3 +42,18 @@ public sealed class RateLimitRule
     public int PermitLimit { get; set; }
     public int WindowSeconds { get; set; }
 }
+
+/// <summary>When a day counts as "on target". Percentages of the user's daily targets.</summary>
+public sealed class AdherenceOptions
+{
+    public const string SectionName = "Adherence";
+
+    /// <summary>Calories within ± this percent of the target.</summary>
+    public double CalorieTolerancePercent { get; set; } = 10;
+
+    /// <summary>Protein at least this percent of the target.</summary>
+    public double ProteinMinPercent { get; set; } = 90;
+
+    /// <summary>Water at least this percent of the target.</summary>
+    public double WaterMinPercent { get; set; } = 80;
+}

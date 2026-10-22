@@ -89,7 +89,7 @@ internal static class AuthApi
     {
         public static async Task<Session> FromAsync(HttpResponseMessage response, string username, string password)
         {
-            var body = await response.Content.ReadFromJsonAsync<AuthResponse>()
+            var body = await response.Content.ReadFromJsonAsync<AuthResponse>(TestJson.Options)
                 ?? throw new InvalidOperationException("Empty auth response.");
             var cookie = RefreshCookieValue(response)
                 ?? throw new InvalidOperationException("No refresh cookie in auth response.");

@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using FluentValidation;
 using Himma.Api.Data;
+using Himma.Api.Features.History;
 using Himma.Api.Infrastructure.Auth;
 using Himma.Api.Infrastructure.Database;
 using Himma.Api.Infrastructure.Errors;
@@ -20,12 +21,19 @@ builder.Host.UseSerilog((context, services, logger) => logger
     .Enrich.FromLogContext());
 
 builder.Services.AddOptions<AdminOptions>().Bind(builder.Configuration.GetSection(AdminOptions.SectionName));
+builder.Services.AddOptions<AdherenceOptions>()
+    .Bind(builder.Configuration.GetSection(AdherenceOptions.SectionName))
+    .Validate(o => o.CalorieTolerancePercent is > 0 and <= 50
+        && o.ProteinMinPercent is > 0 and <= 100
+        && o.WaterMinPercent is > 0 and <= 100, "Adherence percentages are out of range.")
+    .ValidateOnStart();
 
 builder.Services.AddHimmaDatabase(builder.Configuration, builder.Environment);
 builder.Services.AddHimmaIdentity();
 builder.Services.AddHimmaAuthentication(builder.Configuration);
 builder.Services.AddHimmaRateLimiting(builder.Configuration);
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
+builder.Services.AddScoped<HistoryService>();
 
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
