@@ -57,3 +57,14 @@ public sealed class AdherenceOptions
     /// <summary>Water at least this percent of the target.</summary>
     public double WaterMinPercent { get; set; } = 80;
 }
+
+/// <summary>Soft-deleted accounts can be restored for GraceDays, then they are purged automatically.</summary>
+public sealed class AccountDeletionOptions
+{
+    public const string SectionName = "AccountDeletion";
+
+    public int GraceDays { get; set; } = 30;
+
+    /// <summary>How often the background job looks for accounts whose grace period has ended.</summary>
+    public int PurgeIntervalMinutes { get; set; } = 60;
+}

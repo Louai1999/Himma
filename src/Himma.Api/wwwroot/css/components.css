@@ -5,7 +5,7 @@
 .app-header .greeting { margin: 0; color: var(--ink-soft); font-size: .9rem; }
 
 .tabs {
-  display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px;
   margin-bottom: 16px;
 }
 .tab {
@@ -289,3 +289,11 @@ details.inline-form summary { cursor: pointer; font-weight: 700; color: var(--fo
   .card, .tab, .chip, input, select, textarea { border-color: var(--ink); }
   .tabs { background: var(--bg); backdrop-filter: none; }
 }
+
+/* Tabs shrink to fit narrow phones; long labels wrap instead of pushing the page sideways. */
+.tab { min-width: 0; text-align: center; line-height: 1.2; }
+.tab svg { flex: none; }
+@media (max-width: 380px) { .tab { font-size: .85rem; gap: 4px; padding: 6px 4px; } }
+
+/* Grid children may shrink below their content (wide tables then scroll inside their card instead of widening the page). */
+.view > *, .stack > *, .grid-2 > *, .grid-3 > * { min-width: 0; }

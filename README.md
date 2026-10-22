@@ -44,6 +44,18 @@ in the browser and the page reloads right-to-left or left-to-right).
 - Data: system foods, exercises and ready plans have English names (`NameEn`, ...). User-created
   foods, exercises and logged meals keep the text they were saved with.
 
+## Admin dashboard
+
+Open https://localhost:7099/admin.html and sign in with the admin from user-secrets
+(`Admin:Username` / `Admin:Password`). Admins can never be created through sign-up.
+
+- Overview, subscribers (search, filters, sorting, paging), one subscriber's details, audit log.
+- Suspend / reactivate, delete (hidden now, erased automatically after `AccountDeletion:GraceDays`,
+  30 by default), restore, and delete permanently (asks for your password and the username typed exactly).
+- Admins cannot act on their own account or on other admins, so the last admin can never be removed.
+- Every admin action, and every view of a subscriber's data, is written to the audit log.
+- Users can also export their data and delete their own account from the Account page.
+
 ## Agent skills
 
 `.claude/skills/apple-design` (installed with `npx skills add https://github.com/emilkowalski/skills --skill apple-design`)

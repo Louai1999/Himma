@@ -41,3 +41,10 @@ export const formatShort = (iso) => {
   return `${date.getDate()}/${date.getMonth() + 1}`;
 };
 export const formatTime = (utc) => timeFormat.format(new Date(utc));
+
+const dateTimeFormat = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' });
+const dateFormat = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short', year: 'numeric' });
+
+/** A UTC timestamp from the server, shown in the viewer's local time. */
+export const formatDateTime = (utc) => (utc ? dateTimeFormat.format(new Date(utc)) : '—');
+export const formatDate = (utc) => (utc ? dateFormat.format(new Date(utc)) : '—');

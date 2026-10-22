@@ -14,6 +14,7 @@ public enum AuthStatus
     Success,
     InvalidCredentials,
     AccountDisabled,
+    AccountPendingDeletion,
     UsernameTaken,
     ValidationFailed,
     InvalidRefreshToken,
@@ -97,7 +98,11 @@ public sealed class AuthService(
         await users.ResetAccessFailedCountAsync(user);
 
         // Only someone who knows the password learns that the account is disabled.
-        if (!user.IsActive || user.DeletedAtUtc is not null)
+        if (user.DeletedAtUtc is not null)
+        {
+            return new AuthOutcome(AuthStatus.AccountPendingDeletion);
+        }
+        if (!user.IsActive)
         {
             return new AuthOutcome(AuthStatus.AccountDisabled);
         }

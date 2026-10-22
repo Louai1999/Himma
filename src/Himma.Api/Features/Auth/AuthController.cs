@@ -66,6 +66,14 @@ public sealed class AuthController(AuthService auth, RefreshCookie refreshCookie
                     title: Lang.T("الحساب غير مفعّل", "Account not active"),
                     detail: Lang.T("هذا الحساب موقوف حالياً. تواصل مع الدعم إذا كنت تظن أن هذا خطأ.", "This account is currently suspended. Contact support if you think this is a mistake."));
 
+            case AuthStatus.AccountPendingDeletion:
+                return Problem(
+                    statusCode: StatusCodes.Status403Forbidden,
+                    title: Lang.T("الحساب مجدول للحذف", "Account scheduled for deletion"),
+                    detail: Lang.T(
+                        "هذا الحساب في طريقه للحذف النهائي. تواصل مع الدعم خلال 30 يوماً من طلب الحذف إن أردت استرجاعه.",
+                        "This account is being deleted. Contact support within 30 days of the request if you want it back."));
+
             case AuthStatus.UsernameTaken:
                 return Problem(
                     statusCode: StatusCodes.Status409Conflict,

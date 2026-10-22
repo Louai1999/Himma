@@ -2,7 +2,10 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using FluentValidation;
 using Himma.Api.Data;
+using Himma.Api.Features.Account;
+using Himma.Api.Features.Admin;
 using Himma.Api.Features.History;
+using Himma.Api.Infrastructure.Audit;
 using Himma.Api.Features.Workouts;
 using Himma.Api.Infrastructure.Auth;
 using Himma.Api.Infrastructure.Database;
@@ -38,6 +41,15 @@ builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 builder.Services.AddScoped<HistoryService>();
 builder.Services.AddScoped<LastPerformanceQuery>();
 builder.Services.AddScoped<PlanService>();
+
+builder.Services.AddOptions<AccountDeletionOptions>().Bind(builder.Configuration.GetSection(AccountDeletionOptions.SectionName));
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<AuditLogger>();
+builder.Services.AddScoped<PasswordReauthentication>();
+builder.Services.AddScoped<AccountLifecycleService>();
+builder.Services.AddScoped<UserDataExporter>();
+builder.Services.AddScoped<AdminMetricsService>();
+builder.Services.AddHostedService<ScheduledPurgeService>();
 
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();

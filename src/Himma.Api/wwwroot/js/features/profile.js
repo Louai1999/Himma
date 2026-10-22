@@ -1,5 +1,5 @@
 import { t } from '../i18n/index.js';
-import { get, put, post, setSession, clearSession } from '../api.js';
+import { get, put, post, api, setSession, clearSession } from '../api.js';
 import { state, emit } from '../state.js';
 import { genders, activities, goals, targetWarnings } from '../labels.js';
 import { todayLocal } from '../dates.js';
@@ -8,6 +8,8 @@ import { icon } from '../ui/icons.js';
 import { field, selectOf, numberInput, readNumber, showErrors, clearErrors } from '../ui/forms.js';
 import { calmNotice, loadInto } from '../ui/notice.js';
 import { showSaved } from '../ui/toast.js';
+import { openModal } from '../ui/modal.js';
+import { downloadJson } from '../ui/download.js';
 import { startWaterReminder } from './water.js';
 
 /** The profile with its targets, or null when the user has not filled it yet. */
@@ -42,7 +44,8 @@ export function mount(view) {
     profileCard,
     targetsCard,
     reminderCard(),
-    accountCard());
+    accountCard(),
+    privacyCard());
 
   loadInto(profileCard, fetchProfile, (data) => {
     add(profileCard, profileForm(data?.profile ?? null));
@@ -196,4 +199,67 @@ function accountCard() {
         h('p', { class: 'muted small', dir: 'ltr', text: `@${state.user?.username ?? ''}` })),
       logout),
     form);
+}
+
+/** Export my data, open the admin dashboard (admins only), and delete my account. */
+function privacyCard() {
+  const status = h('div');
+  const exportButton = h('button', { type: 'button', class: 'btn btn-secondary' }, icon('copy', 16), t('تصدير بياناتي'));
+  exportButton.addEventListener('click', async () => {
+    exportButton.disabled = true;
+    fill(status);
+    try {
+      const data = await get('/account/export');
+      downloadJson(data, `himma-${state.user?.username ?? 'export'}.json`);
+      showSaved(t('تم التصدير'));
+    } catch (error) {
+      if (error.status !== 401) fill(status, calmNotice(error));
+    } finally {
+      exportButton.disabled = false;
+    }
+  });
+
+  return h('div', { class: 'card stack' },
+    h('h2', { text: t('بياناتي وخصوصيتي') }),
+    h('p', { class: 'muted small', text: t('تستطيع تنزيل نسخة من كل بياناتك، أو حذف حسابك.') }),
+    h('div', { class: 'row' },
+      exportButton,
+      state.user?.roles?.includes('Admin') && h('a', { class: 'btn btn-ghost', href: '/admin.html' }, t('لوحة المدير')),
+      h('button', { type: 'button', class: 'btn btn-danger', onclick: openDeleteAccount }, icon('trash', 16), t('حذف حسابي'))),
+    status);
+}
+
+function openDeleteAccount() {
+  const password = h('input', { type: 'password', autocomplete: 'current-password', dir: 'ltr' });
+  const status = h('div');
+  const submit = h('button', { type: 'submit', class: 'btn btn-danger' }, t('احذف حسابي'));
+  const form = h('form', { class: 'stack', novalidate: true },
+    h('p', { text: t('سيُغلق حسابك ويُسجَّل خروجك من كل الأجهزة الآن، ثم تُحذف كل بياناتك نهائياً بعد 30 يوماً. خلال هذه المدة يمكن استرجاعه بالتواصل مع الدعم.') }),
+    h('p', { class: 'muted small', text: t('ننصحك بتصدير بياناتك أولاً.') }),
+    field(t('كلمة المرور'), password, { name: 'password' }),
+    status,
+    h('div', { class: 'row' },
+      submit,
+      h('button', { type: 'button', class: 'btn btn-secondary', onclick: () => modal.close() }, t('إلغاء'))));
+
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    clearErrors(form);
+    fill(status);
+    submit.disabled = true;
+    try {
+      await api('/account', { method: 'DELETE', body: { password: password.value } });
+      modal.close();
+      clearSession();
+      emit('signed-out', t('حُذف حسابك. نتمنى أن نراك مجدداً.'));
+    } catch (error) {
+      const message = showErrors(form, error);
+      if (message) fill(status, calmNotice(message));
+    } finally {
+      submit.disabled = false;
+    }
+  });
+
+  const modal = openModal({ title: t('حذف حسابي'), content: form });
+  password.focus();
 }

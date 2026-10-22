@@ -16,6 +16,7 @@ import * as historyScreen from './features/history.js';
 import * as profile from './features/profile.js';
 
 const root = document.getElementById('app');
+document.title = t('هِمّة');
 
 const TABS = [
   { key: 'today', label: t('اليوم'), icon: 'today', mount: today.mount },
@@ -26,7 +27,7 @@ const TABS = [
 ];
 
 onSessionExpired(() => showAuth(t('انتهت الجلسة. سجّل الدخول مرة أخرى.')));
-on('signed-out', () => showAuth());
+on('signed-out', (message) => showAuth(message));
 
 registerServiceWorker();
 start();
@@ -69,7 +70,7 @@ function showApp(auth) {
     nav,
     main);
 
-  startRouter({ mainEl: main, navEl: nav, tabs: TABS, hidden: { session: session.mount } });
+  startRouter({ mainEl: main, navEl: nav, tabs: TABS, hidden: { session: session.mount }, parentTabs: { session: 'workouts' } });
   startWaterReminder();
 }
 

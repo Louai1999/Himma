@@ -8,10 +8,15 @@ let routes = new Map();
 let main = null;
 let nav = null;
 let cleanup = null;
+let defaultRoute = 'today';
+let parents = {};
 
-export function startRouter({ mainEl, navEl, tabs, hidden = {} }) {
+/** `parents` maps a hidden route to the tab that stays highlighted, e.g. { session: 'workouts' }. */
+export function startRouter({ mainEl, navEl, tabs, hidden = {}, parentTabs = {} }) {
   main = mainEl;
   nav = navEl;
+  defaultRoute = tabs[0].key;
+  parents = parentTabs;
   routes = new Map([...tabs.map((tab) => [tab.key, tab.mount]), ...Object.entries(hidden)]);
 
   fill(nav, ...tabs.map((tab) =>
@@ -37,8 +42,8 @@ function runCleanup() {
 }
 
 function render() {
-  const [name = 'today', ...params] = location.hash.replace(/^#/, '').split('/').map(decodeURIComponent);
-  const key = routes.has(name) ? name : 'today';
+  const [name = defaultRoute, ...params] = location.hash.replace(/^#/, '').split('/').map(decodeURIComponent);
+  const key = routes.has(name) ? name : defaultRoute;
   const mount = routes.get(key);
 
   runCleanup();
@@ -47,7 +52,7 @@ function render() {
   cleanup = mount(view, params) ?? null;
 
   nav.querySelectorAll('.tab').forEach((tab) => {
-    const active = tab.dataset.tab === key || (key === 'session' && tab.dataset.tab === 'workouts');
+    const active = tab.dataset.tab === key || parents[key] === tab.dataset.tab;
     if (active) tab.setAttribute('aria-current', 'page');
     else tab.removeAttribute('aria-current');
   });

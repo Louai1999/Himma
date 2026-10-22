@@ -6,8 +6,11 @@ import { field, showErrors, clearErrors } from './ui/forms.js';
 import { calmNotice } from './ui/notice.js';
 import { logo } from './ui/logo.js';
 
-/** The sign-in / sign-up gate. Calls onSignedIn(authResponse) when done. */
-export function renderAuth(root, onSignedIn, message) {
+/**
+ * The sign-in / sign-up gate. Calls onSignedIn(authResponse) when done.
+ * The admin page passes allowRegister: false (admins are never created through sign-up).
+ */
+export function renderAuth(root, onSignedIn, message, { allowRegister = true, subtitle } = {}) {
   let mode = 'login';
   const formSlot = h('div', { class: 'card' });
   const loginTab = h('button', { type: 'button', onclick: () => switchTo('login') }, t('تسجيل الدخول'));
@@ -15,9 +18,9 @@ export function renderAuth(root, onSignedIn, message) {
 
   fill(root, h('main', { class: 'auth' },
     h('div', { class: 'auth-top' }, languageSwitch()),
-    h('div', { class: 'brand-block' }, logo(110), h('h1', { text: t('هِمّة') }), h('p', { class: 'muted', text: t('أكلك وماؤك ووزنك وتمارينك في مكان واحد.') })),
+    h('div', { class: 'brand-block' }, logo(110), h('h1', { text: t('هِمّة') }), h('p', { class: 'muted', text: subtitle ?? t('أكلك وماؤك ووزنك وتمارينك في مكان واحد.') })),
     message && calmNotice(message),
-    h('div', { class: 'segmented', role: 'group', 'aria-label': t('نوع الدخول') }, loginTab, registerTab),
+    allowRegister && h('div', { class: 'segmented', role: 'group', 'aria-label': t('نوع الدخول') }, loginTab, registerTab),
     formSlot));
 
   switchTo('login');
