@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 using FluentValidation;
 using Himma.Api.Data;
 using Himma.Api.Features.History;
+using Himma.Api.Features.Workouts;
 using Himma.Api.Infrastructure.Auth;
 using Himma.Api.Infrastructure.Database;
 using Himma.Api.Infrastructure.Errors;
@@ -34,6 +35,8 @@ builder.Services.AddHimmaAuthentication(builder.Configuration);
 builder.Services.AddHimmaRateLimiting(builder.Configuration);
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 builder.Services.AddScoped<HistoryService>();
+builder.Services.AddScoped<LastPerformanceQuery>();
+builder.Services.AddScoped<PlanService>();
 
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();

@@ -35,5 +35,6 @@ public static class DatabaseInitializer
 
         await IdentitySeeder.SeedAsync(provider, logger);
         await FoodSeeder.SeedAsync(db, logger, cancellationToken);
+        await ExerciseSeeder.SeedAsync(db, logger, cancellationToken);
     }
 }
