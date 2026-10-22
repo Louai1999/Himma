@@ -56,7 +56,7 @@ public sealed class ScheduledPurgeService(
             }
 
             await audit.WriteSystemAsync(AuditActions.SystemPurge, user.Id, new { username = user.UserName }, cancellationToken);
-            await lifecycle.PurgeAsync(user);
+            await lifecycle.PurgeAsync(user, cancellationToken);
             purged++;
         }
 

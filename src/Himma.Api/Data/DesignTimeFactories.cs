@@ -39,6 +39,10 @@ public sealed class PostgresDesignTimeFactory : IDesignTimeDbContextFactory<Post
     {
         var configuration = DesignTimeConfiguration.Build();
         var connectionString = configuration.GetConnectionString("Postgres");
+        if (string.IsNullOrWhiteSpace(connectionString))
+        {
+            connectionString = configuration["DATABASE_URL"];
+        }
 
         // `migrations add` never connects, so a placeholder is enough there.
         // `database update` needs the real value from the ConnectionStrings__Postgres environment variable.
@@ -47,7 +51,7 @@ public sealed class PostgresDesignTimeFactory : IDesignTimeDbContextFactory<Post
             connectionString = "Host=localhost;Database=himma_design_time";
         }
 
-        var options = new DbContextOptionsBuilder<PostgresAppDbContext>().UseNpgsql(connectionString).Options;
+        var options = new DbContextOptionsBuilder<PostgresAppDbContext>().UseNpgsql(DatabaseSetup.NormalizePostgres(connectionString)).Options;
         return new PostgresAppDbContext(options);
     }
 }

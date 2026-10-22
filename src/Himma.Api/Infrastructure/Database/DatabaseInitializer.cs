@@ -9,10 +9,12 @@ namespace Himma.Api.Infrastructure.Database;
 public static class DatabaseInitializer
 {
     /// <summary>
-    /// Applies migrations (only when Database:AutoMigrate is true) and runs the idempotent seeders.
-    /// In production, migrations must be applied explicitly; startup stops if any are pending.
+    /// Applies migrations and runs the idempotent seeders. Migrations are applied only when
+    /// Database:AutoMigrate is true (Development) or when explicitly asked (the "--migrate" command used
+    /// at deploy time). Otherwise startup stops if any migration is pending.
     /// </summary>
-    public static async Task InitializeDatabaseAsync(this IServiceProvider services, CancellationToken cancellationToken = default)
+    public static async Task InitializeDatabaseAsync(
+        this IServiceProvider services, bool applyMigrations = false, CancellationToken cancellationToken = default)
     {
         await using var scope = services.CreateAsyncScope();
         var provider = scope.ServiceProvider;
@@ -23,10 +25,11 @@ public static class DatabaseInitializer
         var pending = (await db.Database.GetPendingMigrationsAsync(cancellationToken)).ToList();
         if (pending.Count > 0)
         {
-            if (!options.AutoMigrate)
+            if (!options.AutoMigrate && !applyMigrations)
             {
                 throw new InvalidOperationException(
-                    $"The database has {pending.Count} pending migration(s). Apply them with 'dotnet ef database update' before starting the app.");
+                    $"The database has {pending.Count} pending migration(s). Apply them first: run the app once with --migrate " +
+                    "(or 'dotnet ef database update'), then start it normally.");
             }
 
             logger.LogInformation("Applying {Count} pending migration(s)", pending.Count);

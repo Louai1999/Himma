@@ -1,0 +1,15 @@
+**/bin/
+**/obj/
+**/logs/
+**/*.db
+**/*.db-shm
+**/*.db-wal
+.git/
+.vs/
+.vscode/
+.claude/
+tests/
+.env
+.env.*
+**/appsettings.*.local.json
+**/secrets.json

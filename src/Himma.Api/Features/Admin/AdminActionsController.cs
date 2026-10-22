@@ -101,7 +101,7 @@ public sealed class AdminActionsController(
 
         // Audit first, so the record exists even though the account (and its data) will be gone.
         await audit.WriteAsync(AuditActions.Purge, user.Id, new { username = user.UserName }, cancellationToken);
-        await lifecycle.PurgeAsync(user);
+        await lifecycle.PurgeAsync(user, cancellationToken);
         return NoContent();
     }
 

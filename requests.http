@@ -1,0 +1,451 @@
+### Himma API: every endpoint, for the VS Code "REST Client" extension (humao.rest-client).
+###
+### 1. Run the API (F5 in Visual Studio, or: dotnet run --launch-profile https in src/Himma.Api).
+### 2. Create a file named .env next to this file (it is git-ignored, never commit it):
+###      HIMMA_USER=your-test-username
+###      HIMMA_PASSWORD=your-test-password
+###      HIMMA_ADMIN=your-admin-username
+###      HIMMA_ADMIN_PASSWORD=your-admin-password
+### 3. Click "Send Request" above a request. Run "Register" or "Login" first; the token is reused below.
+###    The refresh cookie is remembered by REST Client, so "Refresh" and "Logout" work too.
+### Add the header  Accept-Language: en  to any request to get English messages and names.
+
+@baseUrl = https://localhost:7099
+@user = {{$dotenv HIMMA_USER}}
+@password = {{$dotenv HIMMA_PASSWORD}}
+@today = {{$datetime "YYYY-MM-DD"}}
+
+### Health check (no sign-in)
+GET {{baseUrl}}/health
+
+
+######################## Auth ########################
+
+### Register (always creates a normal user; there is no role field)
+# @name register
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "{{user}}",
+  "password": "{{password}}",
+  "displayName": "مستخدم تجريبي",
+  "acceptPrivacy": true
+}
+
+### Login (returns the access token; sets the HttpOnly refresh cookie)
+# @name login
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "{{user}}",
+  "password": "{{password}}"
+}
+
+@token = {{login.response.body.accessToken}}
+@userId = {{login.response.body.user.id}}
+
+### Refresh (uses the cookie, rotates it)
+POST {{baseUrl}}/api/auth/refresh
+
+### Change password (signs out other devices; returns a new token)
+POST {{baseUrl}}/api/auth/change-password
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "currentPassword": "{{password}}",
+  "newPassword": "{{password}}-new"
+}
+
+### Logout (revokes the cookie's token family)
+POST {{baseUrl}}/api/auth/logout
+
+
+######################## Profile and tips ########################
+
+### Get profile and daily targets (404 until saved)
+GET {{baseUrl}}/api/profile
+Authorization: Bearer {{token}}
+
+### Save profile (first save also records the weight for "date")
+PUT {{baseUrl}}/api/profile
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "date": "{{today}}",
+  "gender": "male",
+  "age": 30,
+  "heightCm": 180,
+  "weightKg": 80,
+  "activityLevel": "moderate",
+  "goal": "lose",
+  "targetWeightKg": 72
+}
+
+### Tip of the day
+GET {{baseUrl}}/api/tips/today?date={{today}}
+Authorization: Bearer {{token}}
+
+
+######################## Foods and meals ########################
+
+### Search foods (system + my own)
+GET {{baseUrl}}/api/foods?search=دجاج
+Authorization: Bearer {{token}}
+
+### Add my own food
+# @name customFood
+POST {{baseUrl}}/api/customfoods
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "خبز البيت",
+  "kcalPer100g": 250,
+  "proteinPer100g": 8
+}
+
+### Delete my own food
+DELETE {{baseUrl}}/api/customfoods/{{customFood.response.body.id}}
+Authorization: Bearer {{token}}
+
+### Log a meal from the food database (the server calculates the nutrition)
+# @name meal
+POST {{baseUrl}}/api/meals
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "date": "{{today}}",
+  "mealType": "lunch",
+  "source": "manual",
+  "foodId": 1,
+  "grams": 150
+}
+
+### Log a meal with confirmed values (source "ai": used by the meal estimate in the second release)
+POST {{baseUrl}}/api/meals
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "date": "{{today}}",
+  "mealType": "dinner",
+  "source": "ai",
+  "name": "صحن كبسة",
+  "calories": 650,
+  "proteinG": 35
+}
+
+### Meals of a day
+GET {{baseUrl}}/api/meals/{{today}}
+Authorization: Bearer {{token}}
+
+### Delete a meal
+DELETE {{baseUrl}}/api/meals/{{meal.response.body.id}}
+Authorization: Bearer {{token}}
+
+
+######################## Water and weight ########################
+
+### Log water
+# @name water
+POST {{baseUrl}}/api/water
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "date": "{{today}}",
+  "ml": 250
+}
+
+### Water of a day
+GET {{baseUrl}}/api/water/{{today}}
+Authorization: Bearer {{token}}
+
+### Delete a water entry
+DELETE {{baseUrl}}/api/water/{{water.response.body.id}}
+Authorization: Bearer {{token}}
+
+### Water reminder setting
+GET {{baseUrl}}/api/water/reminder
+Authorization: Bearer {{token}}
+
+### Change water reminder
+PUT {{baseUrl}}/api/water/reminder
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "enabled": true,
+  "intervalHours": 2
+}
+
+### Weight history and progress
+GET {{baseUrl}}/api/weight
+Authorization: Bearer {{token}}
+
+### Log weight (same date again replaces it)
+POST {{baseUrl}}/api/weight
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "date": "{{today}}",
+  "weightKg": 79.5
+}
+
+
+######################## History ########################
+
+### Per-day totals (defaults to the last 30 days)
+GET {{baseUrl}}/api/history/days?from={{$datetime "YYYY-MM-DD" -30 d}}&to={{today}}
+Authorization: Bearer {{token}}
+
+### Adherence, streak, daily bars and weight points
+GET {{baseUrl}}/api/history/summary?days=30&today={{today}}
+Authorization: Bearer {{token}}
+
+
+######################## Exercises ########################
+
+### Exercise library (filters: place, muscle, region, search, mine=true)
+GET {{baseUrl}}/api/exercises?place=gym&muscle=chest
+Authorization: Bearer {{token}}
+
+### Create my own exercise
+# @name exercise
+POST {{baseUrl}}/api/exercises
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "ضغط بالدمبل على الأرض",
+  "muscleGroup": "chest",
+  "region": "middle",
+  "place": "home",
+  "equipment": "دمبل",
+  "defaultSets": 3,
+  "defaultReps": 12
+}
+
+### Edit my exercise (built-in exercises return 403; clone them first)
+PUT {{baseUrl}}/api/exercises/{{exercise.response.body.id}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "ضغط أرضي بالدمبل",
+  "muscleGroup": "chest",
+  "region": "middle",
+  "place": "home",
+  "defaultSets": 4,
+  "defaultReps": 10
+}
+
+### Clone a built-in exercise into my own editable copy
+POST {{baseUrl}}/api/exercises/1/clone
+Authorization: Bearer {{token}}
+
+### Delete my exercise (archived instead if a plan or workout uses it)
+DELETE {{baseUrl}}/api/exercises/{{exercise.response.body.id}}
+Authorization: Bearer {{token}}
+
+
+######################## Plans ########################
+
+### Ready plans for beginners (read-only)
+GET {{baseUrl}}/api/plans/templates
+Authorization: Bearer {{token}}
+
+### Copy a ready plan into my plans (keys: home-beginner-3, gym-split-4)
+# @name fromTemplate
+POST {{baseUrl}}/api/plans/from-template/gym-split-4
+Authorization: Bearer {{token}}
+
+### My plans
+GET {{baseUrl}}/api/plans
+Authorization: Bearer {{token}}
+
+### New empty plan (seven rest days)
+# @name plan
+POST {{baseUrl}}/api/plans
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "خطتي",
+  "place": "home"
+}
+
+### One plan with its days and exercises
+GET {{baseUrl}}/api/plans/{{plan.response.body.id}}
+Authorization: Bearer {{token}}
+
+### Rename / change place
+PUT {{baseUrl}}/api/plans/{{plan.response.body.id}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "خطة البيت",
+  "place": "home"
+}
+
+### Make it the active plan
+POST {{baseUrl}}/api/plans/{{plan.response.body.id}}/activate
+Authorization: Bearer {{token}}
+
+### Set one day: rest flag, muscles, and ordered exercises
+# @name day
+PUT {{baseUrl}}/api/plans/{{plan.response.body.id}}/days/sat
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "isRest": false,
+  "focus": ["chest", "triceps"],
+  "items": [
+    { "exerciseId": 1, "sets": 3, "reps": 10, "weightKg": null, "restSeconds": 60, "notes": "ببطء" },
+    { "exerciseId": 2, "sets": 3, "reps": 12, "restSeconds": 60 }
+  ]
+}
+
+### Delete a plan (workout history is kept)
+DELETE {{baseUrl}}/api/plans/{{plan.response.body.id}}
+Authorization: Bearer {{token}}
+
+
+######################## Workouts ########################
+
+### Start (or reopen) today's session for a plan day
+# @name session
+POST {{baseUrl}}/api/workouts/sessions
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "date": "{{today}}",
+  "planDayId": {{day.response.body.id}}
+}
+
+### One session (planned exercises, last weights, logged sets)
+GET {{baseUrl}}/api/workouts/sessions/{{session.response.body.id}}
+Authorization: Bearer {{token}}
+
+### Save the sets done so far (replaces the list)
+PUT {{baseUrl}}/api/workouts/sessions/{{session.response.body.id}}/sets
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "sets": [
+    { "exerciseId": 1, "setNumber": 1, "reps": 10, "weightKg": null, "completed": true },
+    { "exerciseId": 1, "setNumber": 2, "reps": 9, "weightKg": null, "completed": true }
+  ]
+}
+
+### Finish the session (locks its sets)
+POST {{baseUrl}}/api/workouts/sessions/{{session.response.body.id}}/complete
+Authorization: Bearer {{token}}
+
+### Workout history
+GET {{baseUrl}}/api/workouts/history?days=30&today={{today}}
+Authorization: Bearer {{token}}
+
+
+######################## My account ########################
+
+### Export all my data (JSON)
+GET {{baseUrl}}/api/account/export
+Authorization: Bearer {{token}}
+
+### Delete my account (closed now, erased after 30 days). Careful: this really deletes it.
+DELETE {{baseUrl}}/api/account
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "password": "{{password}}"
+}
+
+
+######################## Admin (Admin role only; other users get 403) ########################
+
+@admin = {{$dotenv HIMMA_ADMIN}}
+@adminPassword = {{$dotenv HIMMA_ADMIN_PASSWORD}}
+
+### Admin login
+# @name adminLogin
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "{{admin}}",
+  "password": "{{adminPassword}}"
+}
+
+@adminToken = {{adminLogin.response.body.accessToken}}
+
+### Overview
+GET {{baseUrl}}/api/admin/overview
+Authorization: Bearer {{adminToken}}
+
+### Subscribers (status: active|suspended|pendingDeletion|all; sort: joined_desc|joined_asc|lastLogin_desc|username_asc|streak_desc|consistency_desc|adherence_desc)
+GET {{baseUrl}}/api/admin/users?search=&status=&sort=joined_desc&page=1&pageSize=20
+Authorization: Bearer {{adminToken}}
+
+### One subscriber (audit-logged)
+GET {{baseUrl}}/api/admin/users/{{userId}}
+Authorization: Bearer {{adminToken}}
+
+### A subscriber's meals on a day (audit-logged)
+GET {{baseUrl}}/api/admin/users/{{userId}}/meals?date={{today}}
+Authorization: Bearer {{adminToken}}
+
+### Export a subscriber's data (audit-logged)
+GET {{baseUrl}}/api/admin/users/{{userId}}/export
+Authorization: Bearer {{adminToken}}
+
+### Suspend (asks for the admin's password again)
+POST {{baseUrl}}/api/admin/users/{{userId}}/suspend
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "adminPassword": "{{adminPassword}}"
+}
+
+### Reactivate
+POST {{baseUrl}}/api/admin/users/{{userId}}/reactivate
+Authorization: Bearer {{adminToken}}
+
+### Soft delete (restorable for 30 days)
+DELETE {{baseUrl}}/api/admin/users/{{userId}}
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "adminPassword": "{{adminPassword}}"
+}
+
+### Restore
+POST {{baseUrl}}/api/admin/users/{{userId}}/restore
+Authorization: Bearer {{adminToken}}
+
+### Permanent delete now (cannot be undone; needs the exact username)
+POST {{baseUrl}}/api/admin/users/{{userId}}/purge
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "adminPassword": "{{adminPassword}}",
+  "confirmUsername": "{{user}}"
+}
+
+### Audit log (actor/target: username or id; action: prefix such as admin.)
+GET {{baseUrl}}/api/admin/audit-logs?actor=&target=&action=&from=&to=&page=1&pageSize=50
+Authorization: Bearer {{adminToken}}

@@ -10,6 +10,7 @@ using Himma.Api.Features.Workouts;
 using Himma.Api.Infrastructure.Auth;
 using Himma.Api.Infrastructure.Database;
 using Himma.Api.Infrastructure.Errors;
+using Himma.Api.Infrastructure.Http;
 using Himma.Api.Infrastructure.Identity;
 using Himma.Api.Infrastructure.Localization;
 using Himma.Api.Infrastructure.RateLimiting;
@@ -85,11 +86,22 @@ else
     });
 }
 
+builder.AddHimmaHosting();
+
 var app = builder.Build();
+
+// Deploy step: "dotnet Himma.Api.dll --migrate" applies pending migrations, seeds, and exits.
+if (args.Contains("--migrate"))
+{
+    await app.Services.InitializeDatabaseAsync(applyMigrations: true);
+    return;
+}
 
 await app.Services.InitializeDatabaseAsync();
 
-// First, so error pages and rate-limit messages are also in the user's language.
+// Real client IP and scheme when running behind the hosting platform's proxy.
+app.UseHimmaForwardedHeaders();
+// Early, so error pages and rate-limit messages are also in the user's language.
 app.UseHimmaLocalization();
 app.UseExceptionHandler();
 app.UseStatusCodePages();
@@ -99,7 +111,8 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
+// The hosting platform's own health check calls /health over plain HTTP inside its network; everything else is HTTPS-only.
+app.UseWhen(context => !context.Request.Path.StartsWithSegments("/health"), branch => branch.UseHttpsRedirection());
 app.UseMiddleware<SecurityHeadersMiddleware>();
 app.UseSerilogRequestLogging();
 

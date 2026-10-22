@@ -2,6 +2,7 @@ using Himma.Api.Data;
 using Himma.Api.Options;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace Himma.Api.Infrastructure.Database;
 
@@ -20,13 +21,19 @@ public static class DatabaseSetup
         }
         else if (string.Equals(options.Provider, DatabaseOptions.Postgres, StringComparison.OrdinalIgnoreCase))
         {
+            // Hosting platforms (Render, Railway) provide DATABASE_URL; an explicit connection string wins.
             var connectionString = configuration.GetConnectionString("Postgres");
             if (string.IsNullOrWhiteSpace(connectionString))
             {
-                throw new InvalidOperationException(
-                    "Database:Provider is Postgres but ConnectionStrings:Postgres is empty. Set the environment variable ConnectionStrings__Postgres.");
+                connectionString = configuration["DATABASE_URL"];
             }
-            services.AddDbContext<AppDbContext, PostgresAppDbContext>(db => db.UseNpgsql(connectionString));
+            if (string.IsNullOrWhiteSpace(connectionString))
+            {
+                throw new InvalidOperationException(
+                    "Database:Provider is Postgres but no connection string was found. Set ConnectionStrings__Postgres or DATABASE_URL.");
+            }
+            var npgsql = NormalizePostgres(connectionString);
+            services.AddDbContext<AppDbContext, PostgresAppDbContext>(db => db.UseNpgsql(npgsql));
         }
         else
         {
@@ -34,6 +41,43 @@ public static class DatabaseSetup
         }
 
         return services;
+    }
+
+    /// <summary>
+    /// Accepts both the Npgsql format ("Host=...;Database=...") and the URL format hosting platforms give
+    /// ("postgresql://user:password@host:5432/database"), and returns the Npgsql format.
+    /// </summary>
+    public static string NormalizePostgres(string connectionString)
+    {
+        if (!connectionString.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase)
+            && !connectionString.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase))
+        {
+            return connectionString;
+        }
+
+        var uri = new Uri(connectionString);
+        var credentials = uri.UserInfo.Split(':', 2);
+        var builder = new NpgsqlConnectionStringBuilder
+        {
+            Host = uri.Host,
+            Port = uri.IsDefaultPort || uri.Port <= 0 ? 5432 : uri.Port,
+            Database = Uri.UnescapeDataString(uri.AbsolutePath.TrimStart('/')),
+            Username = Uri.UnescapeDataString(credentials[0]),
+            Password = credentials.Length > 1 ? Uri.UnescapeDataString(credentials[1]) : null,
+            SslMode = SslMode.Prefer,
+        };
+
+        // Keep options such as ?sslmode=require from the URL.
+        foreach (var pair in uri.Query.TrimStart('?').Split('&', StringSplitOptions.RemoveEmptyEntries))
+        {
+            var parts = pair.Split('=', 2);
+            if (parts.Length == 2 && parts[0].Equals("sslmode", StringComparison.OrdinalIgnoreCase)
+                && Enum.TryParse<SslMode>(Uri.UnescapeDataString(parts[1]), ignoreCase: true, out var sslMode))
+            {
+                builder.SslMode = sslMode;
+            }
+        }
+        return builder.ConnectionString;
     }
 
     /// <summary>
