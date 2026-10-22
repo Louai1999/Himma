@@ -1,3 +1,4 @@
+import { t } from '../i18n/index.js';
 import { get, post } from '../api.js';
 import { todayLocal, addDays, formatShort, formatLong, parseIso } from '../dates.js';
 import { h, fill, add, fmt } from '../ui/dom.js';
@@ -15,8 +16,8 @@ export function mount(view) {
   const chartCard = h('div', { class: 'card' });
   const listCard = h('div', { class: 'card' });
 
-  add(view, 
-    h('header', { class: 'view-head' }, h('h1', { text: 'الوزن' })),
+  add(view,
+    h('header', { class: 'view-head' }, h('h1', { text: t('الوزن') })),
     logForm(load),
     progressCard,
     chartCard,
@@ -33,15 +34,15 @@ export function mount(view) {
   }
 
   function renderProgress({ startWeightKg: start, latestWeightKg: latest, targetWeightKg: target }) {
-    add(progressCard, h('h2', { text: 'تقدمك' }));
+    add(progressCard, h('h2', { text: t('تقدمك') }));
     if (latest === null) {
-      add(progressCard, h('p', { class: 'muted', text: 'سجّل وزنك الأول لتبدأ متابعة التقدم.' }));
+      add(progressCard, h('p', { class: 'muted', text: t('سجّل وزنك الأول لتبدأ متابعة التقدم.') }));
       return;
     }
     add(progressCard, h('div', { class: 'grid-3 collapse' },
-      stat(start, 'البداية'), stat(latest, 'الآن'), stat(target, 'الهدف')));
+      stat(start, t('البداية')), stat(latest, t('الآن')), stat(target, t('الهدف'))));
     if (target === null) {
-      add(progressCard, h('p', { class: 'muted small', style: 'margin-top:8px' }, 'حدد وزناً مستهدفاً من ', h('a', { href: '#profile', text: 'حسابي' }), ' لترى نسبة التقدم.'));
+      add(progressCard, h('p', { class: 'muted small', style: 'margin-top:8px' }, t('حدد وزناً مستهدفاً من '), h('a', { href: '#profile', text: t('حسابي') }), t(' لترى نسبة التقدم.')));
       return;
     }
     // Share of the way from the starting weight to the target (moving the wrong way counts as 0).
@@ -50,53 +51,53 @@ export function mount(view) {
     bar.style.width = '0%';
     requestAnimationFrame(() => requestAnimationFrame(() => { bar.style.width = `${Math.round(done * 100)}%`; }));
     const left = Math.abs(latest - target);
-    add(progressCard, 
-      h('div', { class: 'progress', role: 'progressbar', 'aria-valuemin': 0, 'aria-valuemax': 100, 'aria-valuenow': Math.round(done * 100), 'aria-label': 'التقدم نحو الوزن المستهدف', style: 'margin-top:12px' }, bar),
+    add(progressCard,
+      h('div', { class: 'progress', role: 'progressbar', 'aria-valuemin': 0, 'aria-valuemax': 100, 'aria-valuenow': Math.round(done * 100), 'aria-label': t('التقدم نحو الوزن المستهدف'), style: 'margin-top:12px' }, bar),
       h('p', { class: 'muted small', style: 'margin-top:6px' },
-        left < 0.05 ? 'وصلت إلى هدفك. أحسنت!' : [`باقي `, h('span', { class: 'num', text: fmt(left) }), ' كغ على هدفك.']));
+        left < 0.05 ? t('وصلت إلى هدفك. أحسنت!') : [t('باقي '), h('span', { class: 'num', text: fmt(left) }), t(' كغ على هدفك.')]));
   }
 
   function renderChart({ entries, targetWeightKg }) {
     const since = addDays(todayLocal(), -29);
     const recent = entries.filter((e) => e.date >= since);
-    fill(chartCard, 
-      h('h2', { text: 'آخر 30 يوماً' }),
+    fill(chartCard,
+      h('h2', { text: t('آخر 30 يوماً') }),
       lineChart({
         points: recent.map((e) => ({ x: parseIso(e.date).getTime() / DAY_MS, y: e.weightKg, label: formatShort(e.date) })),
         target: targetWeightKg,
-        label: 'رسم بياني لوزنك في آخر 30 يوماً',
+        label: t('رسم بياني لوزنك في آخر 30 يوماً'),
       }),
-      targetWeightKg !== null && h('div', { class: 'legend' }, h('span', {}, h('i', { style: 'background:var(--gold)' }), 'الوزن المستهدف')));
+      targetWeightKg !== null && h('div', { class: 'legend' }, h('span', {}, h('i', { style: 'background:var(--gold)' }), t('الوزن المستهدف'))));
   }
 
   function renderList({ entries }) {
     const recent = entries.slice(-10).reverse();
-    fill(listCard, 
-      h('h2', { text: 'آخر التسجيلات' }),
+    fill(listCard,
+      h('h2', { text: t('آخر التسجيلات') }),
       recent.length === 0
-        ? h('p', { class: 'muted', text: 'لا توجد تسجيلات بعد.' })
+        ? h('p', { class: 'muted', text: t('لا توجد تسجيلات بعد.') })
         : h('ul', { class: 'item-list' }, recent.map((e) =>
           h('li', { class: 'item' },
             h('span', { class: 'grow', text: formatLong(e.date) }),
-            h('span', {}, h('span', { class: 'num', text: fmt(e.weightKg) }), ' كغ')))));
+            h('span', {}, h('span', { class: 'num', text: fmt(e.weightKg) }), t(' كغ'))))));
   }
 }
 
 function stat(value, label) {
   return h('div', { class: 'stat' },
     h('span', { class: 'value', text: value === null ? '—' : fmt(value) }),
-    h('span', { class: 'label', text: value === null ? label : `${label} (كغ)` }));
+    h('span', { class: 'label', text: value === null ? label : t('{label} (كغ)', { label }) }));
 }
 
 function logForm(onSaved) {
   const date = h('input', { type: 'date', value: todayLocal(), max: todayLocal(), required: true });
-  const weight = numberInput(null, { min: 30, max: 300, step: 0.1, placeholder: 'مثال: 78.5' });
+  const weight = numberInput(null, { min: 30, max: 300, step: 0.1, placeholder: t('مثال: 78.5') });
   const status = h('div');
-  const button = h('button', { type: 'submit', class: 'btn' }, icon('plus', 16), 'حفظ الوزن');
+  const button = h('button', { type: 'submit', class: 'btn' }, icon('plus', 16), t('حفظ الوزن'));
   const form = h('form', { class: 'card stack', novalidate: true },
-    h('h2', { text: 'سجّل وزنك' }),
-    h('div', { class: 'grid-2' }, field('التاريخ', date, { name: 'date' }), field('الوزن (كغ)', weight, { name: 'weightKg' })),
-    h('p', { class: 'muted small', text: 'تسجيل نفس اليوم مرة أخرى يستبدل القيمة السابقة.' }),
+    h('h2', { text: t('سجّل وزنك') }),
+    h('div', { class: 'grid-2' }, field(t('التاريخ'), date, { name: 'date' }), field(t('الوزن (كغ)'), weight, { name: 'weightKg' })),
+    h('p', { class: 'muted small', text: t('تسجيل نفس اليوم مرة أخرى يستبدل القيمة السابقة.') }),
     status,
     button);
 

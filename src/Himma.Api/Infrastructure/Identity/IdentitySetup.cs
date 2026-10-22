@@ -31,7 +31,7 @@ public static class IdentitySetup
             })
             .AddRoles<IdentityRole>()
             .AddEntityFrameworkStores<AppDbContext>()
-            .AddErrorDescriber<ArabicIdentityErrorDescriber>()
+            .AddErrorDescriber<LocalizedIdentityErrorDescriber>()
             .AddPasswordValidator<CommonPasswordValidator>();
 
         return services;

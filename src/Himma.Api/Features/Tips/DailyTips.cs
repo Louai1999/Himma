@@ -1,3 +1,5 @@
+using Himma.Api.Infrastructure.Localization;
+
 namespace Himma.Api.Features.Tips;
 
 /// <summary>Short motivational tips. The tip of the day is chosen by the day of the year.</summary>
@@ -38,5 +40,45 @@ public static class DailyTips
         "كل خطوة اليوم تقرّبك من هدفك. استمر.",
     ];
 
-    public static string For(DateOnly date) => All[(date.DayOfYear - 1) % All.Count];
+    /// <summary>The same tips in English, in the same order.</summary>
+    public static IReadOnlyList<string> AllEnglish { get; } =
+    [
+        "Start your day with a glass of water before coffee; your body needs it after hours of sleep.",
+        "Consistency beats perfection: an average day is better than a lost day.",
+        "Add a protein source to every meal; it keeps you full and protects your muscles.",
+        "A ten-minute walk after eating helps digestion and steadier energy.",
+        "Log your meal right after eating it; memory plays tricks by the end of the day.",
+        "Good sleep is part of training; muscles are built while you sleep.",
+        "Don't make up for a big meal by starving; just get back to your plan at the next meal.",
+        "Fill half your plate with vegetables to feel full on fewer calories.",
+        "Progress in training comes from small steps: one more rep or one more kilo.",
+        "Measure progress in weeks, not days; daily weight swings are normal.",
+        "Prepare your meal ahead when you know your day will be busy.",
+        "Thirst sometimes feels like hunger; drink water and wait a little.",
+        "A five-minute warm-up lowers the risk of injury and improves your performance.",
+        "Dates are an excellent energy source half an hour before training.",
+        "Don't compare your beginning with someone else's middle.",
+        "Cut sugary drinks gradually; liquid calories don't fill you up.",
+        "A short workout beats none: twenty minutes is enough to keep the habit.",
+        "Take the stairs instead of the lift when you can; daily movement adds up.",
+        "Eating slowly gives your body time to feel full.",
+        "Plan your rest day like you plan your training day; rest is part of progress.",
+        "Celebrate small wins: a full week of consistency deserves credit.",
+        "Protein at breakfast reduces sweet cravings later in the day.",
+        "Keep your water bottle in sight; what you see, you remember.",
+        "If you miss a workout, don't miss the next one. That's the golden rule.",
+        "Good technique matters more than heavy weight.",
+        "At gatherings, enjoy in moderation, then return to your routine the next day.",
+        "Colourful vegetables and fruit give you a variety of vitamins.",
+        "Late nights raise your appetite the next day; try to sleep earlier.",
+        "Stretching after training helps flexibility and relaxation.",
+        "Make your goal clear and written down; a written goal is closer to being reached.",
+        "Every step today brings you closer to your goal. Keep going.",
+    ];
+
+    public static string For(DateOnly date)
+    {
+        var index = (date.DayOfYear - 1) % All.Count;
+        return Lang.T(All[index], AllEnglish[index]);
+    }
 }

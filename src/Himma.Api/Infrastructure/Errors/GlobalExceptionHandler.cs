@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using Himma.Api.Infrastructure.Localization;
 
 namespace Himma.Api.Infrastructure.Errors;
 
@@ -28,8 +29,8 @@ public sealed class GlobalExceptionHandler(
         var problem = new ProblemDetails
         {
             Status = StatusCodes.Status500InternalServerError,
-            Title = "حدث خطأ غير متوقع",
-            Detail = environment.IsDevelopment() ? exception.Message : "يرجى المحاولة مرة أخرى بعد قليل.",
+            Title = Lang.T("حدث خطأ غير متوقع", "Something went wrong"),
+            Detail = environment.IsDevelopment() ? exception.Message : Lang.T("يرجى المحاولة مرة أخرى بعد قليل.", "Please try again in a moment."),
             Type = "https://tools.ietf.org/html/rfc9110#section-15.6.1",
         };
 

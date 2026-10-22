@@ -2,6 +2,7 @@ using FluentValidation;
 using Himma.Api.Domain;
 using Himma.Api.Domain.Entities;
 using Himma.Api.Infrastructure.Validation;
+using Himma.Api.Infrastructure.Localization;
 
 namespace Himma.Api.Features.Workouts;
 
@@ -80,20 +81,20 @@ public sealed class SaveSetsRequestValidator : AbstractValidator<SaveSetsRequest
     public SaveSetsRequestValidator()
     {
         RuleFor(x => x.Sets).Cascade(CascadeMode.Stop).NotNull()
-            .Must(s => s.Count <= MaxSets).WithMessage($"{MaxSets} جولة كحد أقصى.")
+            .Must(s => s.Count <= MaxSets).WithMessage(_ => Lang.T($"{MaxSets} جولة كحد أقصى.", $"At most {MaxSets} sets."))
             .Must(s => s.Select(x => (x.ExerciseId, x.SetNumber)).Distinct().Count() == s.Count)
-            .WithMessage("كل جولة تُسجّل مرة واحدة فقط لكل تمرين.");
+            .WithMessage(_ => Lang.T("كل جولة تُسجّل مرة واحدة فقط لكل تمرين.", "Each set can be logged only once per exercise."));
 
         RuleForEach(x => x.Sets).ChildRules(set =>
         {
-            set.RuleFor(x => x.ExerciseId).NotNull().WithMessage("التمرين مطلوب.");
-            set.RuleFor(x => x.SetNumber).NotNull().WithMessage("رقم الجولة مطلوب.")
-                .InclusiveBetween(1, 20).WithMessage("رقم الجولة بين 1 و 20.");
-            set.RuleFor(x => x.Reps).NotNull().WithMessage("عدد التكرارات مطلوب.")
-                .InclusiveBetween(1, 100).WithMessage("عدد التكرارات بين 1 و 100.");
+            set.RuleFor(x => x.ExerciseId).NotNull().WithMessage(_ => Lang.T("التمرين مطلوب.", "Exercise is required."));
+            set.RuleFor(x => x.SetNumber).NotNull().WithMessage(_ => Lang.T("رقم الجولة مطلوب.", "Set number is required."))
+                .InclusiveBetween(1, 20).WithMessage(_ => Lang.T("رقم الجولة بين 1 و 20.", "Set number must be between 1 and 20."));
+            set.RuleFor(x => x.Reps).NotNull().WithMessage(_ => Lang.T("عدد التكرارات مطلوب.", "Number of reps is required."))
+                .InclusiveBetween(1, 100).WithMessage(_ => Lang.T("عدد التكرارات بين 1 و 100.", "Reps must be between 1 and 100."));
             set.RuleFor(x => x.WeightKg).InclusiveBetween(0, 500).When(x => x.WeightKg is not null)
-                .WithMessage("الوزن بين 0 و 500 كغ.");
-            set.RuleFor(x => x.Completed).NotNull().WithMessage("حدد هل اكتملت الجولة.");
+                .WithMessage(_ => Lang.T("الوزن بين 0 و 500 كغ.", "Weight must be between 0 and 500 kg."));
+            set.RuleFor(x => x.Completed).NotNull().WithMessage(_ => Lang.T("حدد هل اكتملت الجولة.", "Choose whether the set is done."));
         });
     }
 }

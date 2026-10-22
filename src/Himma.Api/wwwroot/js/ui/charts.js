@@ -1,3 +1,4 @@
+import { t } from '../i18n/index.js';
 import { h, svg, fmt } from './dom.js';
 
 // Hand-written SVG charts: no chart library, so the Content-Security-Policy can stay strict.
@@ -18,7 +19,7 @@ export function ring({ value, max, label, sub = '', color = 'var(--forest)', rem
   }));
 
   return h('figure', { class: 'ring' },
-    svg('svg', { viewBox: '0 0 112 112', role: 'img', 'aria-label': `${label}: ${fmt(value)} من ${fmt(max)} ${sub}` },
+    svg('svg', { viewBox: '0 0 112 112', role: 'img', 'aria-label': t('{label}: {value} من {max} {sub}', { label, value: fmt(value), max: fmt(max), sub }) },
       svg('circle', { cx: 56, cy: 56, r: radius, class: 'ring-track' }),
       progress,
       svg('text', { x: 56, y: 58, 'text-anchor': 'middle', class: 'ring-value' }, fmt(value)),
@@ -40,7 +41,7 @@ function scale(domainMin, domainMax, rangeMin, rangeMax) {
  * `target` draws a dashed horizontal line.
  */
 export function lineChart({ points, target = null, height = 170, label }) {
-  if (points.length === 0) return h('p', { class: 'muted small', text: 'لا توجد بيانات بعد.' });
+  if (points.length === 0) return h('p', { class: 'muted small', text: t('لا توجد بيانات بعد.') });
 
   const ys = points.map((p) => p.y).concat(target ?? []);
   const yMin = Math.floor(Math.min(...ys) - 1);
@@ -70,7 +71,7 @@ export function lineChart({ points, target = null, height = 170, label }) {
  * Bar chart. bars: [{ label, value, ok }] where ok is true (on target), false (off) or null (unknown).
  */
 export function barChart({ bars, target = null, height = 170, label }) {
-  if (bars.length === 0) return h('p', { class: 'muted small', text: 'لا توجد بيانات بعد.' });
+  if (bars.length === 0) return h('p', { class: 'muted small', text: t('لا توجد بيانات بعد.') });
 
   const yMax = Math.max(...bars.map((b) => b.value), target ?? 0, 1) * 1.1;
   const y = scale(0, yMax, height - PAD.bottom, PAD.top);

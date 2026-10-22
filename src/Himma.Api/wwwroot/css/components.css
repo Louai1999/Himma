@@ -264,3 +264,28 @@ details.inline-form summary { cursor: pointer; font-weight: 700; color: var(--fo
 /* Inputs inside a row (e.g. the history date picker) keep their natural width. */
 .row > input[type="date"] { width: auto; flex: 0 1 auto; }
 .row { min-width: 0; }
+
+/* ---------- Language and direction ---------- */
+.app-header .lang-switch { margin-inline-start: auto; }
+.auth-top { display: flex; justify-content: flex-end; }
+/* Direction arrows (previous/next day) point the other way in left-to-right English. */
+[dir="ltr"] .flip-ltr { transform: scaleX(-1); }
+
+/* ---------- Translucent sticky navigation (content scrolls underneath) ---------- */
+.tabs {
+  position: sticky; top: 0; z-index: 20;
+  margin-inline: -16px; padding: 8px 16px;
+  background: rgba(246, 241, 231, .78);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  backdrop-filter: blur(16px) saturate(160%);
+}
+@media (prefers-reduced-transparency: reduce) {
+  .tabs { background: var(--bg); -webkit-backdrop-filter: none; backdrop-filter: none; }
+}
+
+/* ---------- Higher contrast when the system asks for it ---------- */
+@media (prefers-contrast: more) {
+  :root { --ink-soft: #4A433A; --line: #9C8F78; }
+  .card, .tab, .chip, input, select, textarea { border-color: var(--ink); }
+  .tabs { background: var(--bg); backdrop-filter: none; }
+}

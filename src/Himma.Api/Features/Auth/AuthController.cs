@@ -3,6 +3,7 @@ using Himma.Api.Infrastructure.RateLimiting;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using Himma.Api.Infrastructure.Localization;
 
 namespace Himma.Api.Features.Auth;
 
@@ -56,33 +57,33 @@ public sealed class AuthController(AuthService auth, RefreshCookie refreshCookie
             case AuthStatus.InvalidCredentials:
                 return Problem(
                     statusCode: StatusCodes.Status401Unauthorized,
-                    title: "تعذّر تسجيل الدخول",
-                    detail: "اسم المستخدم أو كلمة المرور غير صحيحة، أو أن الدخول أُوقف مؤقتاً بعد محاولات كثيرة. حاول مرة أخرى بعد قليل.");
+                    title: Lang.T("تعذّر تسجيل الدخول", "Could not sign in"),
+                    detail: Lang.T("اسم المستخدم أو كلمة المرور غير صحيحة، أو أن الدخول أُوقف مؤقتاً بعد محاولات كثيرة. حاول مرة أخرى بعد قليل.", "The username or password is incorrect, or sign-in is paused for a while after too many attempts. Please try again shortly."));
 
             case AuthStatus.AccountDisabled:
                 return Problem(
                     statusCode: StatusCodes.Status403Forbidden,
-                    title: "الحساب غير مفعّل",
-                    detail: "هذا الحساب موقوف حالياً. تواصل مع الدعم إذا كنت تظن أن هذا خطأ.");
+                    title: Lang.T("الحساب غير مفعّل", "Account not active"),
+                    detail: Lang.T("هذا الحساب موقوف حالياً. تواصل مع الدعم إذا كنت تظن أن هذا خطأ.", "This account is currently suspended. Contact support if you think this is a mistake."));
 
             case AuthStatus.UsernameTaken:
                 return Problem(
                     statusCode: StatusCodes.Status409Conflict,
-                    title: "اسم المستخدم مستخدم",
-                    detail: "اختر اسم مستخدم آخر.");
+                    title: Lang.T("اسم المستخدم مستخدم", "Username taken"),
+                    detail: Lang.T("اختر اسم مستخدم آخر.", "Please choose another username."));
 
             case AuthStatus.ValidationFailed:
                 return ValidationProblem(new ValidationProblemDetails(outcome.Errors ?? new Dictionary<string, string[]>())
                 {
-                    Title = "بعض البيانات غير صحيحة",
+                    Title = Lang.T("بعض البيانات غير صحيحة", "Some details need fixing"),
                 });
 
             case AuthStatus.InvalidRefreshToken:
                 refreshCookie.Delete(Response);
                 return Problem(
                     statusCode: StatusCodes.Status401Unauthorized,
-                    title: "انتهت الجلسة",
-                    detail: "سجّل الدخول مرة أخرى.");
+                    title: Lang.T("انتهت الجلسة", "Session ended"),
+                    detail: Lang.T("سجّل الدخول مرة أخرى.", "Please sign in again."));
 
             default:
                 throw new InvalidOperationException($"Unhandled auth status {outcome.Status}.");

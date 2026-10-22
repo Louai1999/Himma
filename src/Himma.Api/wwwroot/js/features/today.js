@@ -1,3 +1,4 @@
+import { t } from '../i18n/index.js';
 import { get, post, del } from '../api.js';
 import { on } from '../state.js';
 import { todayLocal, formatLong, formatTime, dayKeyOf } from '../dates.js';
@@ -27,8 +28,8 @@ export function mount(view) {
   const mealsNotice = h('div');
   const waterNotice = h('div');
 
-  add(view, 
-    h('header', { class: 'view-head' }, h('h1', { text: 'اليوم' }), h('p', { class: 'muted', text: formatLong(date) })),
+  add(view,
+    h('header', { class: 'view-head' }, h('h1', { text: t('اليوم') }), h('p', { class: 'muted', text: formatLong(date) })),
     tipBox, ringsCard, mealsCard, waterCard, workoutCard);
 
   load();
@@ -78,35 +79,37 @@ export function mount(view) {
   }
 
   function renderRings() {
-    const t = totals();
+    const sum = totals();
     if (!model.targets) {
-      fill(ringsCard, 
-        h('h2', { text: 'ابدأ بملفك الشخصي' }),
-        h('p', { class: 'muted', text: 'أدخل طولك ووزنك وهدفك، وسنحسب لك السعرات والبروتين والماء يومياً.' }),
-        h('a', { class: 'btn', href: '#profile' }, 'إعداد الملف الشخصي'));
+      fill(ringsCard,
+        h('h2', { text: t('ابدأ بملفك الشخصي') }),
+        h('p', { class: 'muted', text: t('أدخل طولك ووزنك وهدفك، وسنحسب لك السعرات والبروتين والماء يومياً.') }),
+        h('a', { class: 'btn', href: '#profile' }, t('إعداد الملف الشخصي')));
       return;
     }
     const { targetCalories, proteinTargetG, waterTargetMl } = model.targets;
-    const left = (target, value, unit) => (value <= target ? `متبقي ${fmt(target - value)} ${unit}` : `زيادة ${fmt(value - target)} ${unit}`);
+    const left = (target, value, unit) => (value <= target
+      ? t('متبقي {n} {unit}', { n: fmt(target - value), unit })
+      : t('زيادة {n} {unit}', { n: fmt(value - target), unit }));
     fill(ringsCard, h('div', { class: 'rings' },
-      ring({ value: t.calories, max: targetCalories, label: 'السعرات', sub: 'سعرة', color: t.calories > targetCalories * 1.1 ? 'var(--rust)' : 'var(--forest)', remaining: left(targetCalories, t.calories, 'سعرة') }),
-      ring({ value: t.protein, max: proteinTargetG, label: 'البروتين', sub: 'غ', color: 'var(--gold)', remaining: left(proteinTargetG, t.protein, 'غ') }),
-      ring({ value: t.water, max: waterTargetMl, label: 'الماء', sub: 'مل', color: 'var(--water)', remaining: left(waterTargetMl, t.water, 'مل') })));
+      ring({ value: sum.calories, max: targetCalories, label: t('السعرات'), sub: t('سعرة'), color: sum.calories > targetCalories * 1.1 ? 'var(--rust)' : 'var(--forest)', remaining: left(targetCalories, sum.calories, t('سعرة')) }),
+      ring({ value: sum.protein, max: proteinTargetG, label: t('البروتين'), sub: t('غ'), color: 'var(--gold)', remaining: left(proteinTargetG, sum.protein, t('غ')) }),
+      ring({ value: sum.water, max: waterTargetMl, label: t('الماء'), sub: t('مل'), color: 'var(--water)', remaining: left(waterTargetMl, sum.water, t('مل')) })));
   }
 
   // ---------- Meals ----------
   function renderMeals() {
-    fill(mealsCard, 
-      h('div', { class: 'card-head' }, h('h2', { text: 'وجبات اليوم' })),
+    fill(mealsCard,
+      h('div', { class: 'card-head' }, h('h2', { text: t('وجبات اليوم') })),
       mealsNotice,
       Object.entries(mealTypes).map(([type, label]) => {
         const items = model.meals.filter((m) => m.mealType === type);
         const kcal = items.reduce((acc, m) => acc + m.calories, 0);
         return h('section', { class: 'meal-section' },
           h('div', { class: 'card-head' },
-            h('h3', {}, label, items.length > 0 && h('span', { class: 'muted small' }, ' · ', h('span', { class: 'num', text: fmt(kcal) }), ' سعرة')),
+            h('h3', {}, label, items.length > 0 && h('span', { class: 'muted small' }, ' · ', h('span', { class: 'num', text: fmt(kcal) }), t(' سعرة'))),
             h('button', { type: 'button', class: 'btn btn-secondary btn-sm', onclick: () => openAddMeal({ mealType: type, onAdd: addMeal }) },
-              icon('plus', 16), h('span', { text: 'إضافة' }), h('span', { class: 'visually-hidden', text: label }))),
+              icon('plus', 16), h('span', { text: t('إضافة') }), h('span', { class: 'visually-hidden', text: label }))),
           items.length > 0 && h('ul', { class: 'item-list' }, items.map(mealRow)));
       }));
   }
@@ -116,11 +119,11 @@ export function mount(view) {
       h('div', { class: 'grow' },
         h('div', { class: 'title', text: meal.name }),
         h('div', { class: 'meta' },
-          h('span', { class: 'num', text: fmt(meal.grams) }), ' غ · ',
-          h('span', { class: 'num', text: fmt(meal.calories) }), ' سعرة · ',
-          h('span', { class: 'num', text: fmt(meal.proteinG) }), ' غ بروتين')),
+          h('span', { class: 'num', text: fmt(meal.grams) }), t(' غ · '),
+          h('span', { class: 'num', text: fmt(meal.calories) }), t(' سعرة · '),
+          h('span', { class: 'num', text: fmt(meal.proteinG) }), t(' غ بروتين'))),
       !meal.pending && h('button', {
-        type: 'button', class: 'icon-btn danger', 'aria-label': `حذف ${meal.name}`, onclick: () => removeMeal(meal),
+        type: 'button', class: 'icon-btn danger', 'aria-label': t('حذف {name}', { name: meal.name }), onclick: () => removeMeal(meal),
       }, icon('trash', 18)));
   }
 
@@ -150,7 +153,7 @@ export function mount(view) {
     renderMeals();
     renderRings();
     del(`/meals/${meal.id}`)
-      .then(() => showSaved('تم الحذف'))
+      .then(() => showSaved(t('تم الحذف')))
       .catch((error) => {
         if (error.status === 404) return; // already gone
         model.meals.splice(index, 0, meal);
@@ -163,19 +166,19 @@ export function mount(view) {
   // ---------- Water ----------
   function renderWater() {
     const total = model.water.reduce((acc, w) => acc + w.ml, 0);
-    fill(waterCard, 
+    fill(waterCard,
       h('div', { class: 'card-head' },
-        h('h2', { class: 'row' }, icon('drop', 20), 'الماء'),
-        h('span', { class: 'muted' }, h('span', { class: 'num', text: fmt(total) }), ' مل')),
+        h('h2', { class: 'row' }, icon('drop', 20), t('الماء')),
+        h('span', { class: 'muted' }, h('span', { class: 'num', text: fmt(total) }), t(' مل'))),
       waterNotice,
       h('div', { class: 'water-buttons' }, QUICK_WATER.map((ml) =>
-        h('button', { type: 'button', class: 'btn', onclick: () => addWaterEntry(ml) }, icon('plus', 16), h('span', { class: 'num', text: String(ml) }), ' مل'))),
+        h('button', { type: 'button', class: 'btn', onclick: () => addWaterEntry(ml) }, icon('plus', 16), h('span', { class: 'num', text: String(ml) }), t(' مل')))),
       model.water.length > 0 && h('ul', { class: 'item-list', style: 'margin-top:10px' }, model.water.slice().reverse().map((entry) =>
         h('li', { class: entry.pending ? 'item pending' : 'item' },
-          h('div', { class: 'grow' }, h('span', { class: 'num', text: String(entry.ml) }), ' مل',
+          h('div', { class: 'grow' }, h('span', { class: 'num', text: String(entry.ml) }), t(' مل'),
             entry.createdAtUtc && h('span', { class: 'meta' }, ' · ', formatTime(entry.createdAtUtc))),
           !entry.pending && h('button', {
-            type: 'button', class: 'icon-btn danger', 'aria-label': `حذف ${entry.ml} مل`, onclick: () => removeWater(entry),
+            type: 'button', class: 'icon-btn danger', 'aria-label': t('حذف {ml} مل', { ml: entry.ml }), onclick: () => removeWater(entry),
           }, icon('trash', 18))))));
   }
 
@@ -203,7 +206,7 @@ export function mount(view) {
     renderWater();
     renderRings();
     del(`/water/${entry.id}`)
-      .then(() => showSaved('تم الحذف'))
+      .then(() => showSaved(t('تم الحذف')))
       .catch((error) => {
         if (error.status === 404) return;
         model.water.splice(index, 0, entry);
@@ -220,21 +223,21 @@ export function mount(view) {
       const plans = await get('/plans');
       const active = plans.find((p) => p.isActive);
       if (!active) {
-        fill(workoutCard, 
-          h('h2', { class: 'row' }, icon('workouts', 20), 'تمرين اليوم'),
-          h('p', { class: 'muted', text: 'لا توجد خطة تمرين نشطة بعد.' }),
-          h('a', { class: 'btn btn-secondary', href: '#workouts/templates' }, 'اختر خطة جاهزة'));
+        fill(workoutCard,
+          h('h2', { class: 'row' }, icon('workouts', 20), t('تمرين اليوم')),
+          h('p', { class: 'muted', text: t('لا توجد خطة تمرين نشطة بعد.') }),
+          h('a', { class: 'btn btn-secondary', href: '#workouts/templates' }, t('اختر خطة جاهزة')));
         return;
       }
       const plan = await get(`/plans/${active.id}`);
       const day = plan.days.find((d) => d.dayKey === dayKeyOf(date));
       if (!day || day.isRest || day.items.length === 0) {
-        fill(workoutCard, 
-          h('h2', { class: 'row' }, icon('workouts', 20), 'تمرين اليوم'),
-          h('p', { class: 'muted', text: 'اليوم يوم راحة في خطتك. الاستشفاء جزء من التقدم.' }));
+        fill(workoutCard,
+          h('h2', { class: 'row' }, icon('workouts', 20), t('تمرين اليوم')),
+          h('p', { class: 'muted', text: t('اليوم يوم راحة في خطتك. الاستشفاء جزء من التقدم.') }));
         return;
       }
-      const start = h('button', { type: 'button', class: 'btn' }, icon('play', 16), 'ابدأ التمرين');
+      const start = h('button', { type: 'button', class: 'btn' }, icon('play', 16), t('ابدأ التمرين'));
       start.addEventListener('click', async () => {
         start.disabled = true;
         try {
@@ -244,8 +247,8 @@ export function mount(view) {
           add(workoutCard, calmNotice(error));
         }
       });
-      fill(workoutCard, 
-        h('div', { class: 'card-head' }, h('h2', { class: 'row' }, icon('workouts', 20), 'تمرين اليوم'), h('span', { class: 'tag', text: plan.name })),
+      fill(workoutCard,
+        h('div', { class: 'card-head' }, h('h2', { class: 'row' }, icon('workouts', 20), t('تمرين اليوم')), h('span', { class: 'tag', text: plan.name })),
         h('div', { class: 'chips' }, day.focus.map((m) => h('span', { class: 'tag', text: muscles[m] }))),
         h('ul', { class: 'item-list', style: 'margin:10px 0' }, day.items.map((item) =>
           h('li', { class: 'item' },

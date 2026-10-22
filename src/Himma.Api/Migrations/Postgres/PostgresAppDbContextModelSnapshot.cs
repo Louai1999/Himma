@@ -250,12 +250,20 @@ namespace Himma.Api.Migrations.Postgres
                         .HasMaxLength(60)
                         .HasColumnType("character varying(60)");
 
+                    b.Property<string>("EquipmentEn")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)");
+
                     b.Property<string>("IconKey")
                         .IsRequired()
                         .HasMaxLength(40)
                         .HasColumnType("character varying(40)");
 
                     b.Property<string>("Instructions")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("InstructionsEn")
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)");
 
@@ -269,6 +277,10 @@ namespace Himma.Api.Migrations.Postgres
 
                     b.Property<string>("Name")
                         .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)");
+
+                    b.Property<string>("NameEn")
                         .HasMaxLength(60)
                         .HasColumnType("character varying(60)");
 
@@ -314,6 +326,10 @@ namespace Himma.Api.Migrations.Postgres
                         .HasMaxLength(80)
                         .HasColumnType("character varying(80)");
 
+                    b.Property<string>("NameEn")
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
                     b.Property<double>("ProteinPer100g")
                         .HasColumnType("double precision");
 
@@ -321,6 +337,10 @@ namespace Himma.Api.Migrations.Postgres
                         .HasColumnType("double precision");
 
                     b.Property<string>("ServingLabel")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<string>("ServingLabelEn")
                         .HasMaxLength(40)
                         .HasColumnType("character varying(40)");
 

@@ -1,19 +1,25 @@
 namespace Himma.Api.Domain.Entities;
 
-/// <summary>System exercises have OwnerUserId = null and are read-only; users can clone them.</summary>
+/// <summary>
+/// System exercises have OwnerUserId = null and are read-only; users can clone them.
+/// The *En fields hold English text for system exercises; user exercises use one language.
+/// </summary>
 public class ExerciseDefinition
 {
     public int Id { get; set; }
     public string? OwnerUserId { get; set; }
     public string Name { get; set; } = string.Empty;
+    public string? NameEn { get; set; }
     public MuscleGroup MuscleGroup { get; set; }
     public BodyRegion Region { get; set; }
     public WorkoutPlace Place { get; set; }
     public string Equipment { get; set; } = string.Empty;
+    public string? EquipmentEn { get; set; }
     public string IconKey { get; set; } = string.Empty;
     public int DefaultSets { get; set; }
     public int DefaultReps { get; set; }
     public string? Instructions { get; set; }
+    public string? InstructionsEn { get; set; }
 
     /// <summary>Soft delete: kept so plans and history that reference it stay intact.</summary>
     public bool IsArchived { get; set; }

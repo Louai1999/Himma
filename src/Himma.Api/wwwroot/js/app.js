@@ -1,3 +1,5 @@
+import { t } from './i18n/index.js';
+import { languageSwitch } from './ui/language.js';
 import { refreshSession, onSessionExpired, clearSession } from './api.js';
 import { renderAuth } from './auth.js';
 import { startRouter, stopRouter } from './router.js';
@@ -16,14 +18,14 @@ import * as profile from './features/profile.js';
 const root = document.getElementById('app');
 
 const TABS = [
-  { key: 'today', label: 'اليوم', icon: 'today', mount: today.mount },
-  { key: 'workouts', label: 'التمارين', icon: 'workouts', mount: workouts.mount },
-  { key: 'weight', label: 'الوزن', icon: 'weight', mount: weight.mount },
-  { key: 'history', label: 'السجل', icon: 'history', mount: historyScreen.mount },
-  { key: 'profile', label: 'حسابي', icon: 'profile', mount: profile.mount },
+  { key: 'today', label: t('اليوم'), icon: 'today', mount: today.mount },
+  { key: 'workouts', label: t('التمارين'), icon: 'workouts', mount: workouts.mount },
+  { key: 'weight', label: t('الوزن'), icon: 'weight', mount: weight.mount },
+  { key: 'history', label: t('السجل'), icon: 'history', mount: historyScreen.mount },
+  { key: 'profile', label: t('حسابي'), icon: 'profile', mount: profile.mount },
 ];
 
-onSessionExpired(() => showAuth('انتهت الجلسة. سجّل الدخول مرة أخرى.'));
+onSessionExpired(() => showAuth(t('انتهت الجلسة. سجّل الدخول مرة أخرى.')));
 on('signed-out', () => showAuth());
 
 registerServiceWorker();
@@ -54,14 +56,15 @@ function showAuth(message) {
 function showApp(auth) {
   state.user = auth.user;
   const main = h('main', { id: 'main' });
-  const nav = h('nav', { class: 'tabs', 'aria-label': 'الأقسام' });
+  const nav = h('nav', { class: 'tabs', 'aria-label': t('الأقسام') });
 
-  fill(root, 
+  fill(root,
     h('header', { class: 'app-header' },
       logo(48),
       h('div', {},
-        h('p', { class: 'brand', text: 'هِمّة' }),
-        h('p', { class: 'greeting', text: `أهلاً ${auth.user.displayName}` }))),
+        h('p', { class: 'brand', text: t('هِمّة') }),
+        h('p', { class: 'greeting', text: t('أهلاً {name}', { name: auth.user.displayName }) })),
+      languageSwitch()),
     h('div', { id: 'banner-slot' }),
     nav,
     main);

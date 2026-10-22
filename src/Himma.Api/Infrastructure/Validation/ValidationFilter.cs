@@ -1,6 +1,7 @@
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Himma.Api.Infrastructure.Localization;
 
 namespace Himma.Api.Infrastructure.Validation;
 
@@ -38,7 +39,7 @@ public sealed class ValidationFilter : IAsyncActionFilter
             context.Result = new ObjectResult(new ValidationProblemDetails(errors)
             {
                 Status = StatusCodes.Status400BadRequest,
-                Title = "بعض البيانات غير صحيحة",
+                Title = Lang.T("بعض البيانات غير صحيحة", "Some details need fixing"),
             })
             {
                 StatusCode = StatusCodes.Status400BadRequest,

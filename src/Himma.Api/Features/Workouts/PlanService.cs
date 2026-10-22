@@ -1,6 +1,7 @@
 using Himma.Api.Data;
 using Himma.Api.Domain;
 using Himma.Api.Domain.Entities;
+using Himma.Api.Infrastructure.Localization;
 using Microsoft.EntityFrameworkCore;
 
 namespace Himma.Api.Features.Workouts;
@@ -58,7 +59,7 @@ public sealed class PlanService(AppDbContext db, LastPerformanceQuery lastPerfor
         var exerciseIds = await SystemExerciseIdsByNameAsync(cancellationToken);
 
         await DeactivateAllAsync(userId, cancellationToken);
-        var plan = await CreateAsync(userId, template.Name, template.Place, template.Key, cancellationToken);
+        var plan = await CreateAsync(userId, Lang.Pick(template.Name, template.NameEn), template.Place, template.Key, cancellationToken);
         plan.IsActive = true;
 
         foreach (var templateDay in template.Days)
@@ -91,8 +92,8 @@ public sealed class PlanService(AppDbContext db, LastPerformanceQuery lastPerfor
 
         return WorkoutTemplates.All.Select(t => new TemplateDto(
             t.Key,
-            t.Name,
-            t.Description,
+            Lang.Pick(t.Name, t.NameEn),
+            Lang.Pick(t.Description, t.DescriptionEn),
             t.Place,
             Enum.GetValues<DayKey>().Select(key =>
             {

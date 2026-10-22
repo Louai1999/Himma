@@ -18,7 +18,9 @@ public sealed class FoodConfiguration : IEntityTypeConfiguration<Food>
     public void Configure(EntityTypeBuilder<Food> b)
     {
         b.Property(x => x.Name).HasMaxLength(80).IsRequired();
+        b.Property(x => x.NameEn).HasMaxLength(80);
         b.Property(x => x.ServingLabel).HasMaxLength(40);
+        b.Property(x => x.ServingLabelEn).HasMaxLength(40);
         b.HasIndex(x => x.Name).IsUnique();
     }
 }

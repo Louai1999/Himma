@@ -15,17 +15,19 @@ public class UserProfile
     public DateTime UpdatedAtUtc { get; set; }
 }
 
-/// <summary>System food from the seeded database (read-only for users).</summary>
+/// <summary>System food from the seeded database (read-only for users). Name is Arabic; NameEn is the English name.</summary>
 public class Food
 {
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
+    public string? NameEn { get; set; }
     public double KcalPer100g { get; set; }
     public double ProteinPer100g { get; set; }
     public double CarbsPer100g { get; set; }
     public double FatPer100g { get; set; }
     public double? ServingGrams { get; set; }
     public string? ServingLabel { get; set; }
+    public string? ServingLabelEn { get; set; }
 }
 
 public class CustomFood

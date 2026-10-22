@@ -4,6 +4,7 @@ using Himma.Api.Infrastructure.Http;
 using Himma.Api.Infrastructure.Validation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Himma.Api.Infrastructure.Localization;
 
 namespace Himma.Api.Features.Profile;
 
@@ -15,7 +16,7 @@ public sealed class ProfileController(AppDbContext db) : HimmaControllerBase
     {
         var profile = await db.UserProfiles.AsNoTracking().FirstOrDefaultAsync(p => p.UserId == UserId, cancellationToken);
         return profile is null
-            ? NotFoundProblem("لم يتم إعداد الملف الشخصي بعد.")
+            ? NotFoundProblem(Lang.T("لم يتم إعداد الملف الشخصي بعد.", "Your profile is not set up yet."))
             : ProfileResponse.From(profile);
     }
 

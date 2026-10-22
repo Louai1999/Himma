@@ -1,3 +1,4 @@
+import { t } from '../i18n/index.js';
 import { h, fill, add, uid } from './dom.js';
 import { icon } from './icons.js';
 
@@ -15,7 +16,7 @@ export function openModal({ title, content, onClose }) {
     h('div', { class: 'modal-inner' },
       h('div', { class: 'modal-head' },
         h('h2', { id: titleId, text: title }),
-        h('button', { type: 'button', class: 'icon-btn', 'aria-label': 'إغلاق', onclick: close }, icon('close'))),
+        h('button', { type: 'button', class: 'icon-btn', 'aria-label': t('إغلاق'), onclick: close }, icon('close'))),
       content));
 
   dialog.addEventListener('close', () => {
@@ -31,7 +32,7 @@ export function openModal({ title, content, onClose }) {
   return { close, dialog };
 }
 
-export function confirmDialog({ title, message, confirmText = 'تأكيد', danger = false }) {
+export function confirmDialog({ title, message, confirmText = t('تأكيد'), danger = false }) {
   return new Promise((resolve) => {
     let answered = false;
     const finish = (value) => { answered = true; resolve(value); modal.close(); };
@@ -41,7 +42,7 @@ export function confirmDialog({ title, message, confirmText = 'تأكيد', dang
         h('p', { text: message }),
         h('div', { class: 'row' },
           h('button', { type: 'button', class: danger ? 'btn btn-danger' : 'btn', onclick: () => finish(true) }, confirmText),
-          h('button', { type: 'button', class: 'btn btn-secondary', onclick: () => finish(false) }, 'إلغاء'))),
+          h('button', { type: 'button', class: 'btn btn-secondary', onclick: () => finish(false) }, t('إلغاء')))),
       onClose: () => { if (!answered) resolve(false); },
     });
   });

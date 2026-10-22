@@ -28,7 +28,8 @@ const PATHS = {
   calendar: ['M4 6h16v14H4z', 'M4 10h16', 'M8 3v4', 'M16 3v4'],
 };
 
-export function icon(name, size = 20) {
+/** `className` 'flip-ltr' mirrors direction arrows when the page is left-to-right. */
+export function icon(name, size = 20, className) {
   const paths = PATHS[name] ?? PATHS.info;
   return svg('svg', {
     viewBox: '0 0 24 24',
@@ -39,6 +40,7 @@ export function icon(name, size = 20) {
     'stroke-width': name === 'grip' ? 3 : 1.6,
     'stroke-linecap': 'round',
     'stroke-linejoin': 'round',
+    class: className,
     'aria-hidden': 'true',
     focusable: 'false',
   }, paths.map((d) => svg('path', { d })));

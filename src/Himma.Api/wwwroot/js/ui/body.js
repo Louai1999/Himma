@@ -1,3 +1,4 @@
+import { t } from '../i18n/index.js';
 import { svg } from './dom.js';
 import { exerciseTarget } from '../labels.js';
 
@@ -60,13 +61,13 @@ function figure(offset, prefix, zoneNames, on) {
     svg('rect', { x: 39.5, y: 41, width: 6, height: 13, rx: 3, class: 'base' }),
     zoneNames.flatMap((zone) => ZONES[zone].map(([tag, attrs]) =>
       svg(tag, { ...attrs, class: on.has(`${prefix}:${zone}`) ? 'zone on' : 'zone' }))),
-    svg('text', { x: 25, y: 104, 'text-anchor': 'middle' }, prefix === 'f' ? 'أمام' : 'خلف'));
+    svg('text', { x: 25, y: 104, 'text-anchor': 'middle' }, prefix === 'f' ? t('أمام') : t('خلف')));
 }
 
 export function muscleFigure(exercise, className = 'figure') {
   const on = new Set(zonesFor(exercise.muscleGroup, exercise.region));
   return svg('svg', {
     viewBox: '0 0 112 108', class: `muscle-fig ${className}`, role: 'img',
-    'aria-label': `العضلة المستهدفة: ${exerciseTarget(exercise)}`,
+    'aria-label': t('العضلة المستهدفة: {target}', { target: exerciseTarget(exercise) }),
   }, figure(FRONT, 'f', FRONT_ZONES, on), figure(BACK, 'b', BACK_ZONES, on));
 }

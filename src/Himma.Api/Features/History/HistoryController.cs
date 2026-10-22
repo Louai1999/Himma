@@ -1,6 +1,7 @@
 using Himma.Api.Infrastructure.Http;
 using Himma.Api.Infrastructure.Validation;
 using Microsoft.AspNetCore.Mvc;
+using Himma.Api.Infrastructure.Localization;
 
 namespace Himma.Api.Features.History;
 
@@ -31,7 +32,7 @@ public sealed class HistoryController(HistoryService history) : HimmaControllerB
 
         if (fromDate > toDate || toDate.DayNumber - fromDate.DayNumber >= MaxRangeDays)
         {
-            return InvalidField("from", $"الفترة يجب أن تكون بين يوم و {MaxRangeDays} يوماً.");
+            return InvalidField("from", Lang.T($"الفترة يجب أن تكون بين يوم و {MaxRangeDays} يوماً.", $"The range must be between 1 and {MaxRangeDays} days."));
         }
 
         var totals = await history.GetDayTotalsAsync(UserId, fromDate, toDate, cancellationToken);
@@ -50,13 +51,13 @@ public sealed class HistoryController(HistoryService history) : HimmaControllerB
     {
         if (days is < 1 or > MaxSummaryDays)
         {
-            return InvalidField("days", $"عدد الأيام بين 1 و {MaxSummaryDays}.");
+            return InvalidField("days", Lang.T($"عدد الأيام بين 1 و {MaxSummaryDays}.", $"Days must be between 1 and {MaxSummaryDays}."));
         }
 
         var todayDate = ApiDate.UtcToday;
         if (today is not null && (!ApiDate.TryParse(today, out todayDate) || !ApiDate.IsPlausibleToday(todayDate)))
         {
-            return InvalidField("today", "تاريخ اليوم غير صحيح.");
+            return InvalidField("today", Lang.T("تاريخ اليوم غير صحيح.", "Today's date is not valid."));
         }
 
         return await history.GetSummaryAsync(UserId, todayDate, days, cancellationToken);

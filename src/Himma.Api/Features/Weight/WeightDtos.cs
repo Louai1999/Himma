@@ -1,6 +1,7 @@
 using FluentValidation;
 using Himma.Api.Domain.Entities;
 using Himma.Api.Infrastructure.Validation;
+using Himma.Api.Infrastructure.Localization;
 
 namespace Himma.Api.Features.Weight;
 
@@ -27,7 +28,7 @@ public sealed class WeightRequestValidator : AbstractValidator<WeightRequest>
     public WeightRequestValidator()
     {
         RuleFor(x => x.Date).MustBeApiDate();
-        RuleFor(x => x.WeightKg).NotNull().WithMessage("الوزن مطلوب.")
-            .InclusiveBetween(30, 300).WithMessage("الوزن بين 30 و 300 كغ.");
+        RuleFor(x => x.WeightKg).NotNull().WithMessage(_ => Lang.T("الوزن مطلوب.", "Weight is required."))
+            .InclusiveBetween(30, 300).WithMessage(_ => Lang.T("الوزن بين 30 و 300 كغ.", "Weight must be between 30 and 300 kg."));
     }
 }

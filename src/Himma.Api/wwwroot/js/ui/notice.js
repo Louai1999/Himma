@@ -1,13 +1,14 @@
+import { t } from '../i18n/index.js';
 import { h, fill, add } from './dom.js';
 import { icon } from './icons.js';
 
-const NETWORK_TEXT = 'تعذّر الاتصال. تحقق من الإنترنت ثم حاول مرة أخرى.';
+const NETWORK_TEXT = t('تعذّر الاتصال. تحقق من الإنترنت ثم حاول مرة أخرى.');
 
 export function errorText(error) {
-  if (!error) return 'حدث خطأ غير متوقع.';
+  if (!error) return t('حدث خطأ غير متوقع.');
   if (error.isNetwork) return NETWORK_TEXT;
   const fieldMessages = Object.values(error.errors ?? {}).flat();
-  return error.detail || fieldMessages[0] || error.title || error.message || 'حدث خطأ غير متوقع.';
+  return error.detail || fieldMessages[0] || error.title || error.message || t('حدث خطأ غير متوقع.');
 }
 
 /**
@@ -17,7 +18,7 @@ export function errorText(error) {
 export function calmNotice(error, onRetry) {
   return h('div', { class: 'notice', role: 'status' },
     h('span', { text: typeof error === 'string' ? error : errorText(error) }),
-    onRetry && h('button', { type: 'button', class: 'btn btn-ghost btn-sm', onclick: onRetry }, icon('refresh', 16), 'إعادة المحاولة'));
+    onRetry && h('button', { type: 'button', class: 'btn btn-ghost btn-sm', onclick: onRetry }, icon('refresh', 16), t('إعادة المحاولة')));
 }
 
 export function skeleton(lines = 3) {

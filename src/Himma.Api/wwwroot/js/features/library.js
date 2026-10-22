@@ -1,3 +1,4 @@
+import { t } from '../i18n/index.js';
 import { get, post, put, del } from '../api.js';
 import { muscles, regions, places, exerciseTarget } from '../labels.js';
 import { h, fill, add, debounce } from '../ui/dom.js';
@@ -14,23 +15,23 @@ import { showSaved } from '../ui/toast.js';
  * onPick(exercise) is called for every exercise added; the dialog stays open to add more.
  */
 export function openLibrary({ place = '', muscle = '', onPick }) {
-  const search = h('input', { type: 'search', placeholder: 'ابحث باسم التمرين', autocomplete: 'off' });
-  const placeSelect = selectOf({ '': 'كل الأماكن', ...places }, place);
-  const muscleSelect = selectOf({ '': 'كل العضلات', ...muscles }, muscle);
-  const regionSelect = selectOf({ '': 'كل المناطق', ...regions }, '');
+  const search = h('input', { type: 'search', placeholder: t('ابحث باسم التمرين'), autocomplete: 'off' });
+  const placeSelect = selectOf({ '': t('كل الأماكن'), ...places }, place);
+  const muscleSelect = selectOf({ '': t('كل العضلات'), ...muscles }, muscle);
+  const regionSelect = selectOf({ '': t('كل المناطق'), ...regions }, '');
   const mineOnly = h('input', { type: 'checkbox', id: 'mine-only' });
-  const list = h('ul', { class: 'exercise-list', 'aria-label': 'التمارين', style: 'max-height:55vh;overflow-y:auto' });
+  const list = h('ul', { class: 'exercise-list', 'aria-label': t('التمارين'), style: 'max-height:55vh;overflow-y:auto' });
   let token = 0;
 
   const content = h('div', { class: 'stack' },
-    field('بحث', search),
-    h('div', { class: 'grid-3' }, field('المكان', placeSelect), field('العضلة', muscleSelect), field('المنطقة', regionSelect)),
+    field(t('بحث'), search),
+    h('div', { class: 'grid-3' }, field(t('المكان'), placeSelect), field(t('العضلة'), muscleSelect), field(t('المنطقة'), regionSelect)),
     h('div', { class: 'row spread' },
-      h('label', { class: 'check', for: 'mine-only' }, mineOnly, h('span', { text: 'تماريني فقط' })),
-      h('button', { type: 'button', class: 'btn btn-secondary btn-sm', onclick: () => openExerciseForm({ onSaved: refresh }) }, icon('plus', 16), 'تمرين جديد')),
+      h('label', { class: 'check', for: 'mine-only' }, mineOnly, h('span', { text: t('تماريني فقط') })),
+      h('button', { type: 'button', class: 'btn btn-secondary btn-sm', onclick: () => openExerciseForm({ onSaved: refresh }) }, icon('plus', 16), t('تمرين جديد'))),
     list);
 
-  openModal({ title: 'مكتبة التمارين', content });
+  openModal({ title: t('مكتبة التمارين'), content });
 
   [placeSelect, muscleSelect, regionSelect, mineOnly].forEach((el) => el.addEventListener('change', refresh));
   search.addEventListener('input', debounce(refresh, 250));
@@ -50,25 +51,25 @@ export function openLibrary({ place = '', muscle = '', onPick }) {
       if (current !== token) return;
       fill(list, ...(exercises.length
         ? exercises.map(row)
-        : [h('li', { class: 'muted small', text: 'لا توجد تمارين بهذه الفلاتر.' })]));
+        : [h('li', { class: 'muted small', text: t('لا توجد تمارين بهذه الفلاتر.') })]));
     } catch (error) {
       if (current === token) fill(list, h('li', {}, calmNotice(error, refresh)));
     }
   }
 
   function row(exercise) {
-    const addButton = h('button', { type: 'button', class: 'btn btn-sm' }, icon('plus', 16), 'إضافة');
+    const addButton = h('button', { type: 'button', class: 'btn btn-sm' }, icon('plus', 16), t('إضافة'));
     addButton.addEventListener('click', () => {
       onPick(exercise);
       addButton.disabled = true;
-      fill(addButton, icon('check', 16), 'أُضيف');
+      fill(addButton, icon('check', 16), t('أُضيف'));
     });
 
     const actions = exercise.isSystem
-      ? [h('button', { type: 'button', class: 'btn btn-ghost btn-sm', onclick: () => clone(exercise) }, icon('copy', 16), 'نسخ وتعديل')]
+      ? [h('button', { type: 'button', class: 'btn btn-ghost btn-sm', onclick: () => clone(exercise) }, icon('copy', 16), t('نسخ وتعديل'))]
       : [
-        h('button', { type: 'button', class: 'icon-btn', 'aria-label': `تعديل ${exercise.name}`, onclick: () => openExerciseForm({ exercise, onSaved: refresh }) }, icon('edit', 18)),
-        h('button', { type: 'button', class: 'icon-btn danger', 'aria-label': `حذف ${exercise.name}`, onclick: () => remove(exercise) }, icon('trash', 18)),
+        h('button', { type: 'button', class: 'icon-btn', 'aria-label': t('تعديل {name}', { name: exercise.name }), onclick: () => openExerciseForm({ exercise, onSaved: refresh }) }, icon('edit', 18)),
+        h('button', { type: 'button', class: 'icon-btn danger', 'aria-label': t('حذف {name}', { name: exercise.name }), onclick: () => remove(exercise) }, icon('trash', 18)),
       ];
 
     return h('li', { class: 'exercise' },
@@ -76,7 +77,7 @@ export function openLibrary({ place = '', muscle = '', onPick }) {
       h('div', { class: 'stack', style: 'gap:4px' },
         h('div', { class: 'row spread' },
           h('span', { class: 'name', text: exercise.name }),
-          h('span', { class: exercise.isSystem ? 'tag muted' : 'tag gold', text: exercise.isSystem ? 'جاهز' : 'تمريني' })),
+          h('span', { class: exercise.isSystem ? 'tag muted' : 'tag gold', text: exercise.isSystem ? t('جاهز') : t('تمريني') })),
         h('span', { class: 'muted small', text: `${exerciseTarget(exercise)} · ${places[exercise.place]}${exercise.equipment ? ` · ${exercise.equipment}` : ''}` }),
         exercise.instructions && h('span', { class: 'small', text: exercise.instructions }),
         h('div', { class: 'row' }, onPick && addButton, actions)));
@@ -85,7 +86,7 @@ export function openLibrary({ place = '', muscle = '', onPick }) {
   async function clone(exercise) {
     try {
       const copy = await post(`/exercises/${exercise.id}/clone`);
-      showSaved('تم النسخ');
+      showSaved(t('تم النسخ'));
       openExerciseForm({ exercise: copy, onSaved: refresh });
       refresh();
     } catch (error) {
@@ -95,15 +96,15 @@ export function openLibrary({ place = '', muscle = '', onPick }) {
 
   async function remove(exercise) {
     const ok = await confirmDialog({
-      title: 'حذف تمرين',
-      message: `حذف "${exercise.name}"؟ إن كان مستخدماً في خطة أو في سجلك سيبقى ظاهراً هناك.`,
-      confirmText: 'حذف',
+      title: t('حذف تمرين'),
+      message: t('حذف "{name}"؟ إن كان مستخدماً في خطة أو في سجلك سيبقى ظاهراً هناك.', { name: exercise.name }),
+      confirmText: t('حذف'),
       danger: true,
     });
     if (!ok) return;
     try {
       await del(`/exercises/${exercise.id}`);
-      showSaved('تم الحذف');
+      showSaved(t('تم الحذف'));
       refresh();
     } catch (error) {
       list.prepend(h('li', {}, calmNotice(error)));
@@ -123,18 +124,18 @@ export function openExerciseForm({ exercise = null, onSaved }) {
   const instructions = h('textarea', { maxlength: 1000 });
   instructions.value = exercise?.instructions ?? '';
   const status = h('div');
-  const button = h('button', { type: 'submit', class: 'btn' }, 'حفظ');
+  const button = h('button', { type: 'submit', class: 'btn' }, t('حفظ'));
 
   const form = h('form', { class: 'stack', novalidate: true },
-    field('اسم التمرين', name, { name: 'name' }),
-    h('div', { class: 'grid-3' }, field('العضلة', muscle, { name: 'muscleGroup' }), field('المنطقة', region, { name: 'region' }), field('المكان', place, { name: 'place' })),
-    field('الأدوات', equipment, { name: 'equipment' }),
-    h('div', { class: 'grid-2' }, field('الجولات', sets, { name: 'defaultSets' }), field('التكرارات', reps, { name: 'defaultReps' })),
-    field('طريقة الأداء (اختياري)', instructions, { name: 'instructions' }),
+    field(t('اسم التمرين'), name, { name: 'name' }),
+    h('div', { class: 'grid-3' }, field(t('العضلة'), muscle, { name: 'muscleGroup' }), field(t('المنطقة'), region, { name: 'region' }), field(t('المكان'), place, { name: 'place' })),
+    field(t('الأدوات'), equipment, { name: 'equipment' }),
+    h('div', { class: 'grid-2' }, field(t('الجولات'), sets, { name: 'defaultSets' }), field(t('التكرارات'), reps, { name: 'defaultReps' })),
+    field(t('طريقة الأداء (اختياري)'), instructions, { name: 'instructions' }),
     status,
     button);
 
-  const modal = openModal({ title: exercise ? 'تعديل تمرين' : 'تمرين جديد', content: form });
+  const modal = openModal({ title: exercise ? t('تعديل تمرين') : t('تمرين جديد'), content: form });
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault();

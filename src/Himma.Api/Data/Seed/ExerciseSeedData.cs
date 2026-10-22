@@ -13,7 +13,7 @@ namespace Himma.Api.Data.Seed;
 ///   shoulders: upper = front head, middle = side head, lower = rear head;
 ///   whole = the muscle as a whole (compound movements).
 /// </summary>
-public static class ExerciseSeedData
+public static partial class ExerciseSeedData
 {
     // Home (beginner)
     public const string PushUps = "ضغط";
@@ -138,18 +138,25 @@ public static class ExerciseSeedData
 
     private static ExerciseDefinition E(
         string name, MuscleGroup muscle, BodyRegion region, WorkoutPlace place,
-        string equipment, string iconKey, int sets, int reps, string instructions) => new()
+        string equipment, string iconKey, int sets, int reps, string instructions)
     {
-        OwnerUserId = null,
-        Name = name,
-        MuscleGroup = muscle,
-        Region = region,
-        Place = place,
-        Equipment = equipment,
-        IconKey = iconKey,
-        DefaultSets = sets,
-        DefaultReps = reps,
-        Instructions = instructions,
-        CreatedAtUtc = DateTime.UtcNow,
-    };
+        var english = English[name];
+        return new ExerciseDefinition
+        {
+            OwnerUserId = null,
+            Name = name,
+            NameEn = english.Name,
+            MuscleGroup = muscle,
+            Region = region,
+            Place = place,
+            Equipment = equipment,
+            EquipmentEn = english.Equipment,
+            IconKey = iconKey,
+            DefaultSets = sets,
+            DefaultReps = reps,
+            Instructions = instructions,
+            InstructionsEn = english.Instructions,
+            CreatedAtUtc = DateTime.UtcNow,
+        };
+    }
 }

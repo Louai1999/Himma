@@ -32,6 +32,23 @@ so there is no build step and no Live Server: run the API and open https://local
 - Security: the page never builds HTML from text (no `innerHTML`); everything goes through
   `js/ui/dom.js`, which only creates elements and text nodes.
 
+## Languages (Arabic / English)
+
+Arabic is the default; the button in the header switches to English (the choice is remembered
+in the browser and the page reloads right-to-left or left-to-right).
+
+- Frontend: write text as `t('النص العربي')`. The Arabic text is the key; add its English in
+  `js/i18n/en.js`. Placeholders: `t('حذف {name}', { name })`.
+- Server: user-facing messages are written as `Lang.T("عربي", "English")`. The frontend sends the
+  language in the `Accept-Language` header.
+- Data: system foods, exercises and ready plans have English names (`NameEn`, ...). User-created
+  foods, exercises and logged meals keep the text they were saved with.
+
+## Agent skills
+
+`.claude/skills/apple-design` (installed with `npx skills add https://github.com/emilkowalski/skills --skill apple-design`)
+holds interface and motion guidelines for AI coding assistants working on the frontend.
+
 ## Tests
 
 `dotnet test` from the repository root.

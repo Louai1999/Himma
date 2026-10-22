@@ -8,7 +8,8 @@ public sealed record TemplateItem(string ExerciseName, int Sets, int Reps, int R
 public sealed record TemplateDay(DayKey DayKey, IReadOnlyList<MuscleGroup> Focus, IReadOnlyList<TemplateItem> Items);
 
 /// <summary>Days that are not listed are rest days.</summary>
-public sealed record WorkoutTemplate(string Key, string Name, string Description, WorkoutPlace Place, IReadOnlyList<TemplateDay> Days);
+public sealed record WorkoutTemplate(
+    string Key, string Name, string NameEn, string Description, string DescriptionEn, WorkoutPlace Place, IReadOnlyList<TemplateDay> Days);
 
 /// <summary>
 /// Ready plans for beginners. They live in code and are read-only; applying one copies it
@@ -24,7 +25,11 @@ public static class WorkoutTemplates
 
     public static IReadOnlyList<WorkoutTemplate> All { get; } =
     [
-        new(HomeBeginner3, "مبتدئ منزلي - 3 أيام", "تمارين بوزن الجسم لكامل الجسم، ثلاثة أيام في الأسبوع مع يوم راحة بينها.", WorkoutPlace.Home,
+        new(HomeBeginner3,
+            "مبتدئ منزلي - 3 أيام", "Home beginner - 3 days",
+            "تمارين بوزن الجسم لكامل الجسم، ثلاثة أيام في الأسبوع مع يوم راحة بينها.",
+            "Full-body bodyweight training, three days a week with a rest day in between.",
+            WorkoutPlace.Home,
         [
             new(DayKey.Sat, [MuscleGroup.FullBody],
             [
@@ -49,7 +54,11 @@ public static class WorkoutTemplates
             ]),
         ]),
 
-        new(GymSplit4, "تقسيم الجيم - 4 أيام", "صدر وترايسبس / ظهر وبايسبس / أرجل / أكتاف وبطن.", WorkoutPlace.Gym,
+        new(GymSplit4,
+            "تقسيم الجيم - 4 أيام", "Gym split - 4 days",
+            "صدر وترايسبس / ظهر وبايسبس / أرجل / أكتاف وبطن.",
+            "Chest + triceps / back + biceps / legs / shoulders + abs.",
+            WorkoutPlace.Gym,
         [
             new(DayKey.Sat, [MuscleGroup.Chest, MuscleGroup.Triceps],
             [

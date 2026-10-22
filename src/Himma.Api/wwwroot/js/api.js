@@ -1,3 +1,4 @@
+import { t, lang } from './i18n/index.js';
 // Every network call goes through here.
 // The access token lives only in memory (never localStorage). The refresh token is an
 // HttpOnly cookie the browser sends to /api/auth automatically; JavaScript never sees it.
@@ -30,7 +31,11 @@ export function clearSession() { accessToken = null; }
 export function refreshSession() {
   refreshInFlight ??= (async () => {
     try {
-      const response = await fetch('/api/auth/refresh', { method: 'POST', credentials: 'same-origin' });
+      const response = await fetch('/api/auth/refresh', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Accept-Language': lang },
+      });
       if (!response.ok) {
         accessToken = null;
         return null;
@@ -48,7 +53,8 @@ export function refreshSession() {
 }
 
 export async function api(path, { method = 'GET', body, retry = true } = {}) {
-  const headers = { Accept: 'application/json' };
+  // The server answers (messages, food and exercise names) in the user's language.
+  const headers = { Accept: 'application/json', 'Accept-Language': lang };
   if (body !== undefined) headers['Content-Type'] = 'application/json';
   if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
 
@@ -69,7 +75,7 @@ export async function api(path, { method = 'GET', body, retry = true } = {}) {
     const session = await refreshSession();
     if (session) return api(path, { method, body, retry: false });
     onExpired();
-    throw new ApiError(401, { title: 'انتهت الجلسة' });
+    throw new ApiError(401, { title: t('انتهت الجلسة') });
   }
 
   if (response.status === 204) return null;

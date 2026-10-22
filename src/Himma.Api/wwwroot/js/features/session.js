@@ -1,3 +1,4 @@
+import { t } from '../i18n/index.js';
 import { get, post, put } from '../api.js';
 import { formatLong } from '../dates.js';
 import { days, exerciseTarget } from '../labels.js';
@@ -34,13 +35,13 @@ function render(container, session) {
 
   const saveSoon = debounce(save, 600);
 
-  add(container, 
+  add(container,
     h('header', { class: 'view-head' },
       h('div', {},
-        h('h1', { text: session.planName ? `${days[session.dayKey]} - ${session.planName}` : 'تمرين حر' }),
+        h('h1', { text: session.planName ? `${days[session.dayKey]} - ${session.planName}` : t('تمرين حر') }),
         h('p', { class: 'muted', text: formatLong(session.date) })),
-      h('a', { class: 'btn btn-ghost btn-sm', href: '#workouts' }, 'رجوع')),
-    locked && calmNotice('أنهيت هذا التمرين. أحسنت!'),
+      h('a', { class: 'btn btn-ghost btn-sm', href: '#workouts' }, t('رجوع'))),
+    locked && calmNotice(t('أنهيت هذا التمرين. أحسنت!')),
     status,
     list,
     !locked && h('button', {
@@ -50,15 +51,15 @@ function render(container, session) {
           renderList();
         },
       }),
-    }, icon('plus', 16), 'إضافة تمرين'),
-    !locked && h('button', { type: 'button', class: 'btn btn-block', onclick: finish }, icon('check', 18), 'إنهاء التمرين'));
+    }, icon('plus', 16), t('إضافة تمرين')),
+    !locked && h('button', { type: 'button', class: 'btn btn-block', onclick: finish }, icon('check', 18), t('إنهاء التمرين')));
 
   renderList();
 
   function renderList() {
     fill(list, ...(exercises.length
       ? exercises.map(exerciseCard)
-      : [h('div', { class: 'card empty', text: 'لا توجد تمارين في هذه الجلسة بعد. أضف تمريناً لتبدأ.' })]));
+      : [h('div', { class: 'card empty', text: t('لا توجد تمارين في هذه الجلسة بعد. أضف تمريناً لتبدأ.') })]));
   }
 
   function exerciseCard(entry) {
@@ -69,9 +70,9 @@ function render(container, session) {
     function setRow(set, index) {
       const reps = numberInput(set.reps, { min: 1, max: 100, step: 1 });
       const weight = numberInput(set.weightKg, { min: 0, max: 500, step: 0.5 });
-      const done = h('input', { type: 'checkbox', checked: set.completed, 'aria-label': `${exercise.name}: الجولة ${index + 1} تمت` });
-      reps.setAttribute('aria-label', `${exercise.name}: تكرارات الجولة ${index + 1}`);
-      weight.setAttribute('aria-label', `${exercise.name}: وزن الجولة ${index + 1} بالكيلو`);
+      const done = h('input', { type: 'checkbox', checked: set.completed, 'aria-label': t('{name}: الجولة {n} تمت', { name: exercise.name, n: index + 1 }) });
+      reps.setAttribute('aria-label', t('{name}: تكرارات الجولة {n}', { name: exercise.name, n: index + 1 }));
+      weight.setAttribute('aria-label', t('{name}: وزن الجولة {n} بالكيلو', { name: exercise.name, n: index + 1 }));
       [reps, weight, done].forEach((el) => { el.disabled = locked; });
       const tr = h('tr', { class: set.completed ? 'done' : '' },
         h('td', {}, h('span', { class: 'num', text: String(index + 1) })),
@@ -95,10 +96,10 @@ function render(container, session) {
         muscleFigure(exercise),
         h('div', {},
           h('h2', { text: exercise.name }),
-          h('p', { class: 'muted small', text: `${exerciseTarget(exercise)} · المطلوب ${entry.plannedSets} × ${entry.plannedReps}` }),
-          entry.last && h('p', { class: 'small' }, 'آخر مرة: ', h('span', { class: 'num', text: `${fmt(entry.last.weightKg ?? 0)} كغ × ${entry.last.reps}` })))),
+          h('p', { class: 'muted small', text: `${exerciseTarget(exercise)} · ${t('المطلوب {sets} × {reps}', { sets: entry.plannedSets, reps: entry.plannedReps })}` }),
+          entry.last && h('p', { class: 'small' }, t('آخر مرة: '), h('span', { class: 'num', text: t('{kg} كغ × {reps}', { kg: fmt(entry.last.weightKg ?? 0), reps: entry.last.reps }) })))),
       h('table', { class: 'set-table' },
-        h('thead', {}, h('tr', {}, h('th', { text: 'الجولة' }), h('th', { text: 'التكرار' }), h('th', { text: 'الوزن (كغ)' }), h('th', { text: 'تمت' }))),
+        h('thead', {}, h('tr', {}, h('th', { text: t('الجولة') }), h('th', { text: t('التكرار') }), h('th', { text: t('الوزن (كغ)') }), h('th', { text: t('تمت') }))),
         rows),
       !locked && h('button', {
         type: 'button', class: 'btn btn-ghost btn-sm', onclick: () => {
@@ -106,7 +107,7 @@ function render(container, session) {
           entry.sets.push({ reps: previous?.reps ?? entry.plannedReps, weightKg: previous?.weightKg ?? null, completed: false });
           renderRows();
         },
-      }, icon('plus', 16), 'جولة إضافية'));
+      }, icon('plus', 16), t('جولة إضافية')));
   }
 
   /** Sends every ticked set. Unticked rows are only on screen until they are ticked. */
@@ -130,7 +131,7 @@ function render(container, session) {
     if (!(await save())) return;
     try {
       await post(`/workouts/sessions/${session.id}/complete`);
-      showSaved('أحسنت! تم حفظ التمرين');
+      showSaved(t('أحسنت! تم حفظ التمرين'));
       navigate('#workouts/history');
     } catch (error) {
       if (error.status !== 401) fill(status, calmNotice(error, finish));

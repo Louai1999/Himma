@@ -6,6 +6,7 @@ using Himma.Api.Infrastructure.Http;
 using Himma.Api.Infrastructure.Validation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Himma.Api.Infrastructure.Localization;
 
 namespace Himma.Api.Features.Meals;
 
@@ -54,7 +55,7 @@ public sealed class MealsController(AppDbContext db) : HimmaControllerBase
                 var food = await db.Foods.AsNoTracking().FirstOrDefaultAsync(f => f.Id == request.FoodId, cancellationToken);
                 if (food is null)
                 {
-                    return InvalidField("foodId", "هذا الطعام غير موجود.");
+                    return InvalidField("foodId", Lang.T("هذا الطعام غير موجود.", "This food does not exist."));
                 }
                 FillFromPer100g(entry, food.Name, request.Grams!.Value, food.KcalPer100g, food.ProteinPer100g, food.CarbsPer100g, food.FatPer100g);
                 break;
@@ -65,7 +66,7 @@ public sealed class MealsController(AppDbContext db) : HimmaControllerBase
                     .FirstOrDefaultAsync(f => f.Id == request.CustomFoodId && f.UserId == userId, cancellationToken);
                 if (custom is null)
                 {
-                    return InvalidField("customFoodId", "هذا الطعام غير موجود في أطعمتك.");
+                    return InvalidField("customFoodId", Lang.T("هذا الطعام غير موجود في أطعمتك.", "This food is not in your foods."));
                 }
                 FillFromPer100g(entry, custom.Name, request.Grams!.Value, custom.KcalPer100g, custom.ProteinPer100g, 0, 0);
                 break;

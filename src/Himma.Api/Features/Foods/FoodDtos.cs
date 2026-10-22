@@ -1,4 +1,5 @@
 using Himma.Api.Domain.Entities;
+using Himma.Api.Infrastructure.Localization;
 
 namespace Himma.Api.Features.Foods;
 
@@ -20,8 +21,10 @@ public sealed record FoodDto(
     double? ServingGrams,
     string? ServingLabel)
 {
+    /// <summary>System foods come back in the request's language.</summary>
     public static FoodDto From(Food f) =>
-        new(f.Id, FoodSources.System, f.Name, f.KcalPer100g, f.ProteinPer100g, f.CarbsPer100g, f.FatPer100g, f.ServingGrams, f.ServingLabel);
+        new(f.Id, FoodSources.System, Lang.Pick(f.Name, f.NameEn), f.KcalPer100g, f.ProteinPer100g, f.CarbsPer100g, f.FatPer100g,
+            f.ServingGrams, Lang.PickOptional(f.ServingLabel, f.ServingLabelEn));
 
     public static FoodDto From(CustomFood f) =>
         new(f.Id, FoodSources.Custom, f.Name, f.KcalPer100g, f.ProteinPer100g, null, null, null, null);

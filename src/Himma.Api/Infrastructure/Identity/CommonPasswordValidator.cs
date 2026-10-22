@@ -1,5 +1,6 @@
 using Himma.Api.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
+using Himma.Api.Infrastructure.Localization;
 
 namespace Himma.Api.Infrastructure.Identity;
 
@@ -45,7 +46,7 @@ public sealed class CommonPasswordValidator : IPasswordValidator<ApplicationUser
             ? IdentityResult.Failed(new IdentityError
             {
                 Code = ErrorCode,
-                Description = "كلمة المرور سهلة التخمين. اختر كلمة أطول وأقل شيوعاً، ولا تضع فيها اسم المستخدم.",
+                Description = Lang.T("كلمة المرور سهلة التخمين. اختر كلمة أطول وأقل شيوعاً، ولا تضع فيها اسم المستخدم.", "This password is easy to guess. Choose a longer, less common one, and do not include your username."),
             })
             : IdentityResult.Success);
     }

@@ -237,12 +237,20 @@ namespace Himma.Api.Migrations.Sqlite
                         .HasMaxLength(60)
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("EquipmentEn")
+                        .HasMaxLength(60)
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("IconKey")
                         .IsRequired()
                         .HasMaxLength(40)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Instructions")
+                        .HasMaxLength(1000)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("InstructionsEn")
                         .HasMaxLength(1000)
                         .HasColumnType("TEXT");
 
@@ -256,6 +264,10 @@ namespace Himma.Api.Migrations.Sqlite
 
                     b.Property<string>("Name")
                         .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("NameEn")
                         .HasMaxLength(60)
                         .HasColumnType("TEXT");
 
@@ -299,6 +311,10 @@ namespace Himma.Api.Migrations.Sqlite
                         .HasMaxLength(80)
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("NameEn")
+                        .HasMaxLength(80)
+                        .HasColumnType("TEXT");
+
                     b.Property<double>("ProteinPer100g")
                         .HasColumnType("REAL");
 
@@ -306,6 +322,10 @@ namespace Himma.Api.Migrations.Sqlite
                         .HasColumnType("REAL");
 
                     b.Property<string>("ServingLabel")
+                        .HasMaxLength(40)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ServingLabelEn")
                         .HasMaxLength(40)
                         .HasColumnType("TEXT");
 

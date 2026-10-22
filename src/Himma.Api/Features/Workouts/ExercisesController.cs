@@ -5,6 +5,7 @@ using Himma.Api.Infrastructure.Http;
 using Himma.Api.Infrastructure.Validation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Himma.Api.Infrastructure.Localization;
 
 namespace Himma.Api.Features.Workouts;
 
@@ -32,24 +33,25 @@ public sealed class ExercisesController(AppDbContext db) : HimmaControllerBase
 
         if (place is not null)
         {
-            if (!EnumParam.TryParse<WorkoutPlace>(place, out var p)) return InvalidField("place", "مكان غير معروف.");
+            if (!EnumParam.TryParse<WorkoutPlace>(place, out var p)) return InvalidField("place", Lang.T("مكان غير معروف.", "Unknown place."));
             query = query.Where(e => e.Place == p);
         }
         if (muscle is not null)
         {
-            if (!EnumParam.TryParse<MuscleGroup>(muscle, out var m)) return InvalidField("muscle", "عضلة غير معروفة.");
+            if (!EnumParam.TryParse<MuscleGroup>(muscle, out var m)) return InvalidField("muscle", Lang.T("عضلة غير معروفة.", "Unknown muscle."));
             query = query.Where(e => e.MuscleGroup == m);
         }
         if (region is not null)
         {
-            if (!EnumParam.TryParse<BodyRegion>(region, out var r)) return InvalidField("region", "منطقة غير معروفة.");
+            if (!EnumParam.TryParse<BodyRegion>(region, out var r)) return InvalidField("region", Lang.T("منطقة غير معروفة.", "Unknown region."));
             query = query.Where(e => e.Region == r);
         }
         if (!string.IsNullOrWhiteSpace(search))
         {
             var term = search.Trim();
-            if (term.Length > 60) return InvalidField("search", "نص البحث طويل جداً.");
-            query = query.Where(e => e.Name.Contains(term));
+            if (term.Length > 60) return InvalidField("search", Lang.T("نص البحث طويل جداً.", "The search text is too long."));
+            var lowered = term.ToLowerInvariant();
+            query = query.Where(e => e.Name.ToLower().Contains(lowered) || (e.NameEn != null && e.NameEn.ToLower().Contains(lowered)));
         }
 
         var exercises = await query
@@ -133,18 +135,19 @@ public sealed class ExercisesController(AppDbContext db) : HimmaControllerBase
             return NotFoundProblem();
         }
 
+        // The user's copy is a normal one-language exercise, in the language they are using now.
         var copy = new ExerciseDefinition
         {
             OwnerUserId = UserId,
-            Name = source.Name,
+            Name = Lang.Pick(source.Name, source.NameEn),
             MuscleGroup = source.MuscleGroup,
             Region = source.Region,
             Place = source.Place,
-            Equipment = source.Equipment,
+            Equipment = Lang.Pick(source.Equipment, source.EquipmentEn),
             IconKey = source.IconKey,
             DefaultSets = source.DefaultSets,
             DefaultReps = source.DefaultReps,
-            Instructions = source.Instructions,
+            Instructions = Lang.PickOptional(source.Instructions, source.InstructionsEn),
             CreatedAtUtc = DateTime.UtcNow,
         };
         db.Exercises.Add(copy);
@@ -164,8 +167,8 @@ public sealed class ExercisesController(AppDbContext db) : HimmaControllerBase
     private ObjectResult SystemExerciseIsReadOnly() =>
         Problem(
             statusCode: StatusCodes.Status403Forbidden,
-            title: "تمرين للقراءة فقط",
-            detail: "تمارين النظام لا يمكن تعديلها أو حذفها. انسخ التمرين ثم عدّل نسختك.");
+            title: Lang.T("تمرين للقراءة فقط", "Read-only exercise"),
+            detail: Lang.T("تمارين النظام لا يمكن تعديلها أو حذفها. انسخ التمرين ثم عدّل نسختك.", "Built-in exercises cannot be edited or deleted. Copy the exercise, then edit your copy."));
 
     private static void Apply(ExerciseDefinition exercise, ExerciseRequest request)
     {

@@ -3,6 +3,7 @@ using System.Threading.RateLimiting;
 using Himma.Api.Options;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using Himma.Api.Infrastructure.Localization;
 
 namespace Himma.Api.Infrastructure.RateLimiting;
 
@@ -75,8 +76,8 @@ public static class RateLimitingSetup
             ProblemDetails = new ProblemDetails
             {
                 Status = StatusCodes.Status429TooManyRequests,
-                Title = "طلبات كثيرة",
-                Detail = "أرسلت طلبات كثيرة خلال وقت قصير. خذ نفساً وحاول مرة أخرى بعد قليل.",
+                Title = Lang.T("طلبات كثيرة", "Too many requests"),
+                Detail = Lang.T("أرسلت طلبات كثيرة خلال وقت قصير. خذ نفساً وحاول مرة أخرى بعد قليل.", "You sent many requests in a short time. Take a breath and try again shortly."),
             },
         });
     }

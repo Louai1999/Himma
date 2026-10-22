@@ -8,6 +8,7 @@ using Himma.Api.Infrastructure.Auth;
 using Himma.Api.Infrastructure.Database;
 using Himma.Api.Infrastructure.Errors;
 using Himma.Api.Infrastructure.Identity;
+using Himma.Api.Infrastructure.Localization;
 using Himma.Api.Infrastructure.RateLimiting;
 using Himma.Api.Infrastructure.Security;
 using Himma.Api.Infrastructure.Validation;
@@ -76,6 +77,8 @@ var app = builder.Build();
 
 await app.Services.InitializeDatabaseAsync();
 
+// First, so error pages and rate-limit messages are also in the user's language.
+app.UseHimmaLocalization();
 app.UseExceptionHandler();
 app.UseStatusCodePages();
 

@@ -4,22 +4,40 @@ namespace Himma.Api.Data.Seed;
 
 public static class ExerciseSeeder
 {
-    /// <summary>Inserts any system exercise whose name is not in the database yet. Never overwrites or deletes.</summary>
+    /// <summary>
+    /// Inserts any system exercise whose (Arabic) name is not in the database yet, and fills in
+    /// English text that older databases do not have. Never changes values or deletes.
+    /// </summary>
     public static async Task SeedAsync(AppDbContext db, ILogger logger, CancellationToken cancellationToken = default)
     {
-        var existing = (await db.Exercises
+        var existing = await db.Exercises
             .Where(e => e.OwnerUserId == null)
-            .Select(e => e.Name)
-            .ToListAsync(cancellationToken)).ToHashSet();
+            .ToDictionaryAsync(e => e.Name, cancellationToken);
+        var added = 0;
+        var translated = 0;
 
-        var missing = ExerciseSeedData.All.Where(e => !existing.Contains(e.Name)).ToList();
-        if (missing.Count == 0)
+        foreach (var seed in ExerciseSeedData.All)
+        {
+            if (!existing.TryGetValue(seed.Name, out var exercise))
+            {
+                db.Exercises.Add(seed);
+                added++;
+            }
+            else if (exercise.NameEn is null)
+            {
+                exercise.NameEn = seed.NameEn;
+                exercise.EquipmentEn = seed.EquipmentEn;
+                exercise.InstructionsEn = seed.InstructionsEn;
+                translated++;
+            }
+        }
+
+        if (added + translated == 0)
         {
             return;
         }
 
-        db.Exercises.AddRange(missing);
         await db.SaveChangesAsync(cancellationToken);
-        logger.LogInformation("Seeded {Count} system exercises", missing.Count);
+        logger.LogInformation("Seeded {Added} system exercises and added English text to {Translated}", added, translated);
     }
 }

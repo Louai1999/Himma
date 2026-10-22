@@ -15,9 +15,12 @@ public sealed class ExerciseDefinitionConfiguration : IEntityTypeConfiguration<E
     public void Configure(EntityTypeBuilder<ExerciseDefinition> b)
     {
         b.Property(x => x.Name).HasMaxLength(60).IsRequired();
+        b.Property(x => x.NameEn).HasMaxLength(60);
         b.Property(x => x.Equipment).HasMaxLength(60).IsRequired();
+        b.Property(x => x.EquipmentEn).HasMaxLength(60);
         b.Property(x => x.IconKey).HasMaxLength(40).IsRequired();
         b.Property(x => x.Instructions).HasMaxLength(1000);
+        b.Property(x => x.InstructionsEn).HasMaxLength(1000);
         b.HasIndex(x => new { x.OwnerUserId, x.Place, x.MuscleGroup });
         b.HasOne<ApplicationUser>().WithMany().HasForeignKey(x => x.OwnerUserId).OnDelete(DeleteBehavior.Cascade);
     }

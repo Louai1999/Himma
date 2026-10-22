@@ -1,3 +1,5 @@
+import { t } from './i18n/index.js';
+import { languageSwitch } from './ui/language.js';
 import { post, setSession } from './api.js';
 import { h, fill, add } from './ui/dom.js';
 import { field, showErrors, clearErrors } from './ui/forms.js';
@@ -8,13 +10,14 @@ import { logo } from './ui/logo.js';
 export function renderAuth(root, onSignedIn, message) {
   let mode = 'login';
   const formSlot = h('div', { class: 'card' });
-  const loginTab = h('button', { type: 'button', onclick: () => switchTo('login') }, 'تسجيل الدخول');
-  const registerTab = h('button', { type: 'button', onclick: () => switchTo('register') }, 'حساب جديد');
+  const loginTab = h('button', { type: 'button', onclick: () => switchTo('login') }, t('تسجيل الدخول'));
+  const registerTab = h('button', { type: 'button', onclick: () => switchTo('register') }, t('حساب جديد'));
 
   fill(root, h('main', { class: 'auth' },
-    h('div', { class: 'brand-block' }, logo(110), h('h1', { text: 'هِمّة' }), h('p', { class: 'muted', text: 'أكلك وماؤك ووزنك وتمارينك في مكان واحد.' })),
+    h('div', { class: 'auth-top' }, languageSwitch()),
+    h('div', { class: 'brand-block' }, logo(110), h('h1', { text: t('هِمّة') }), h('p', { class: 'muted', text: t('أكلك وماؤك ووزنك وتمارينك في مكان واحد.') })),
     message && calmNotice(message),
-    h('div', { class: 'segmented', role: 'group', 'aria-label': 'نوع الدخول' }, loginTab, registerTab),
+    h('div', { class: 'segmented', role: 'group', 'aria-label': t('نوع الدخول') }, loginTab, registerTab),
     formSlot));
 
   switchTo('login');
@@ -30,9 +33,9 @@ export function renderAuth(root, onSignedIn, message) {
   function loginForm() {
     const username = h('input', { type: 'text', autocomplete: 'username', required: true, dir: 'ltr' });
     const password = h('input', { type: 'password', autocomplete: 'current-password', required: true, dir: 'ltr' });
-    return authForm('دخول', [
-      field('اسم المستخدم', username, { name: 'username' }),
-      field('كلمة المرور', password, { name: 'password' }),
+    return authForm(t('دخول'), [
+      field(t('اسم المستخدم'), username, { name: 'username' }),
+      field(t('كلمة المرور'), password, { name: 'password' }),
     ], () => post('/auth/login', { username: username.value.trim(), password: password.value }));
   }
 
@@ -41,13 +44,13 @@ export function renderAuth(root, onSignedIn, message) {
     const displayName = h('input', { type: 'text', autocomplete: 'nickname', required: true, maxlength: 60 });
     const password = h('input', { type: 'password', autocomplete: 'new-password', required: true, minlength: 8, dir: 'ltr' });
     const consent = h('input', { type: 'checkbox', id: 'privacy-consent', required: true });
-    return authForm('إنشاء الحساب', [
-      field('اسم المستخدم (بالإنجليزي)', username, { name: 'username', hint: 'حروف إنجليزية وأرقام و . _ - فقط.' }),
-      field('اسمك الظاهر', displayName, { name: 'displayName' }),
-      field('كلمة المرور', password, { name: 'password', hint: '8 أحرف على الأقل، وتجنب الكلمات الشائعة.' }),
-      h('p', { class: 'privacy', text: 'إشعار الخصوصية: بياناتك محفوظة في حسابك. صاحب الخدمة يستطيع الاطلاع على بيانات الاستخدام (مثل الوجبات والتمارين ومدى الالتزام) لأغراض الدعم وتحسين الخدمة فقط، ولا تُشارك مع أي طرف آخر. تستطيع تصدير بياناتك أو حذف حسابك في أي وقت.' }),
+    return authForm(t('إنشاء الحساب'), [
+      field(t('اسم المستخدم (بالإنجليزي)'), username, { name: 'username', hint: t('حروف إنجليزية وأرقام و . _ - فقط.') }),
+      field(t('اسمك الظاهر'), displayName, { name: 'displayName' }),
+      field(t('كلمة المرور'), password, { name: 'password', hint: t('8 أحرف على الأقل، وتجنب الكلمات الشائعة.') }),
+      h('p', { class: 'privacy', text: t('إشعار الخصوصية: بياناتك محفوظة في حسابك. صاحب الخدمة يستطيع الاطلاع على بيانات الاستخدام (مثل الوجبات والتمارين ومدى الالتزام) لأغراض الدعم وتحسين الخدمة فقط، ولا تُشارك مع أي طرف آخر. تستطيع تصدير بياناتك أو حذف حسابك في أي وقت.') }),
       h('div', { class: 'field', dataset: { field: 'acceptPrivacy' } },
-        h('label', { class: 'check', for: 'privacy-consent' }, consent, h('span', { text: 'قرأت إشعار الخصوصية وأوافق عليه.' })),
+        h('label', { class: 'check', for: 'privacy-consent' }, consent, h('span', { text: t('قرأت إشعار الخصوصية وأوافق عليه.') })),
         h('span', { class: 'field-error' })),
     ], () => post('/auth/register', {
       username: username.value.trim(),

@@ -5,6 +5,7 @@ using Himma.Api.Infrastructure.Http;
 using Himma.Api.Infrastructure.Validation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Himma.Api.Infrastructure.Localization;
 
 namespace Himma.Api.Features.Workouts;
 
@@ -43,7 +44,7 @@ public sealed class PlansController(AppDbContext db, PlanService plans) : HimmaC
     {
         var plan = await plans.CreateFromTemplateAsync(key, UserId, cancellationToken);
         return plan is null
-            ? NotFoundProblem("هذه الخطة الجاهزة غير موجودة.")
+            ? NotFoundProblem(Lang.T("هذه الخطة الجاهزة غير موجودة.", "This ready plan does not exist."))
             : StatusCode(StatusCodes.Status201Created, await plans.GetDetailAsync(plan.Id, UserId, cancellationToken));
     }
 
@@ -108,7 +109,7 @@ public sealed class PlansController(AppDbContext db, PlanService plans) : HimmaC
     {
         if (!EnumParam.TryParse<DayKey>(dayKey, out var key))
         {
-            return InvalidField("dayKey", "اليوم يجب أن يكون من sat إلى fri.");
+            return InvalidField("dayKey", Lang.T("اليوم يجب أن يكون من sat إلى fri.", "The day must be one of sat to fri."));
         }
 
         var userId = UserId;
@@ -133,7 +134,7 @@ public sealed class PlansController(AppDbContext db, PlanService plans) : HimmaC
             var exerciseId = request.Items[i].ExerciseId!.Value;
             if (!allowed.TryGetValue(exerciseId, out var isArchived) || (isArchived && !alreadyOnDay.Contains(exerciseId)))
             {
-                return InvalidField($"items[{i}].exerciseId", "هذا التمرين غير موجود في مكتبتك.");
+                return InvalidField($"items[{i}].exerciseId", Lang.T("هذا التمرين غير موجود في مكتبتك.", "This exercise is not in your library."));
             }
         }
 

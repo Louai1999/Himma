@@ -5,6 +5,7 @@ using Himma.Api.Infrastructure.Identity;
 using Himma.Api.Options;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
+using Himma.Api.Infrastructure.Localization;
 
 namespace Himma.Api.Features.Auth;
 
@@ -164,7 +165,7 @@ public sealed class AuthService(
                 await users.AccessFailedAsync(user);
                 return new AuthOutcome(AuthStatus.ValidationFailed, Errors: new Dictionary<string, string[]>
                 {
-                    ["currentPassword"] = ["كلمة المرور الحالية غير صحيحة."],
+                    ["currentPassword"] = [Lang.T("كلمة المرور الحالية غير صحيحة.", "The current password is incorrect.")],
                 });
             }
             return new AuthOutcome(AuthStatus.ValidationFailed, Errors: ToErrors(changed, passwordField: "newPassword"));

@@ -4,6 +4,7 @@ using Himma.Api.Infrastructure.Http;
 using Himma.Api.Infrastructure.Validation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Himma.Api.Infrastructure.Localization;
 
 namespace Himma.Api.Features.Workouts;
 
@@ -24,7 +25,7 @@ public sealed class WorkoutsController(AppDbContext db, LastPerformanceQuery las
         if (request.PlanDayId is int planDayId
             && !await db.WorkoutPlanDays.AnyAsync(d => d.Id == planDayId && d.Plan!.UserId == userId, cancellationToken))
         {
-            return InvalidField("planDayId", "يوم الخطة غير موجود.");
+            return InvalidField("planDayId", Lang.T("يوم الخطة غير موجود.", "This plan day does not exist."));
         }
 
         var existing = await db.WorkoutSessions.AsNoTracking().FirstOrDefaultAsync(s =>
@@ -66,8 +67,8 @@ public sealed class WorkoutsController(AppDbContext db, LastPerformanceQuery las
         }
         if (session.CompletedAtUtc is not null)
         {
-            return Problem(statusCode: StatusCodes.Status409Conflict, title: "التمرين منتهٍ",
-                detail: "لا يمكن تعديل جولات تمرين تم إنهاؤه.");
+            return Problem(statusCode: StatusCodes.Status409Conflict, title: Lang.T("التمرين منتهٍ", "Workout finished"),
+                detail: Lang.T("لا يمكن تعديل جولات تمرين تم إنهاؤه.", "Sets of a finished workout cannot be changed."));
         }
 
         var userId = UserId;
@@ -79,7 +80,7 @@ public sealed class WorkoutsController(AppDbContext db, LastPerformanceQuery las
         var unknown = request.Sets.FindIndex(s => !allowedIds.Contains(s.ExerciseId!.Value));
         if (unknown >= 0)
         {
-            return InvalidField($"sets[{unknown}].exerciseId", "هذا التمرين غير موجود في مكتبتك.");
+            return InvalidField($"sets[{unknown}].exerciseId", Lang.T("هذا التمرين غير موجود في مكتبتك.", "This exercise is not in your library."));
         }
 
         await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
@@ -122,13 +123,13 @@ public sealed class WorkoutsController(AppDbContext db, LastPerformanceQuery las
     {
         if (days is < 1 or > 365)
         {
-            return InvalidField("days", "عدد الأيام بين 1 و 365.");
+            return InvalidField("days", Lang.T("عدد الأيام بين 1 و 365.", "Days must be between 1 and 365."));
         }
 
         var todayDate = ApiDate.UtcToday;
         if (today is not null && (!ApiDate.TryParse(today, out todayDate) || !ApiDate.IsPlausibleToday(todayDate)))
         {
-            return InvalidField("today", "تاريخ اليوم غير صحيح.");
+            return InvalidField("today", Lang.T("تاريخ اليوم غير صحيح.", "Today's date is not valid."));
         }
 
         var userId = UserId;

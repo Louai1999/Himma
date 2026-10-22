@@ -1,3 +1,4 @@
+import { t } from '../i18n/index.js';
 import { get, post } from '../api.js';
 import { emit } from '../state.js';
 import { todayLocal } from '../dates.js';
@@ -36,14 +37,14 @@ export async function addWater(ml, date = todayLocal()) {
 
 function remind() {
   if ('Notification' in window && Notification.permission === 'granted' && document.hidden) {
-    new Notification('هِمّة', { body: 'وقت كوب ماء. جسمك يشكرك.', icon: 'assets/himma-logo.svg' });
+    new Notification(t('هِمّة'), { body: t('وقت كوب ماء. جسمك يشكرك.'), icon: 'assets/himma-logo.svg' });
   }
 
   const slot = document.getElementById('banner-slot');
   if (!slot) return;
   const close = () => fill(slot);
   fill(slot, h('div', { class: 'notice info banner', role: 'status' },
-    h('span', { class: 'row' }, icon('drop', 18), 'وقت كوب ماء.'),
+    h('span', { class: 'row' }, icon('drop', 18), t('وقت كوب ماء.')),
     h('span', { class: 'row' },
       h('button', {
         type: 'button', class: 'btn btn-sm', onclick: async (event) => {
@@ -57,6 +58,6 @@ function remind() {
             button.disabled = false;
           }
         },
-      }, 'سجّل 250 مل'),
-      h('button', { type: 'button', class: 'icon-btn', 'aria-label': 'إغلاق التذكير', onclick: close }, icon('close', 18)))));
+      }, t('سجّل 250 مل')),
+      h('button', { type: 'button', class: 'icon-btn', 'aria-label': t('إغلاق التذكير'), onclick: close }, icon('close', 18)))));
 }

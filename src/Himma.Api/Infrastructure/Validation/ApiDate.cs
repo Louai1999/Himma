@@ -1,5 +1,6 @@
 using System.Globalization;
 using FluentValidation;
+using Himma.Api.Infrastructure.Localization;
 
 namespace Himma.Api.Infrastructure.Validation;
 
@@ -29,8 +30,10 @@ public static class ApiDate
     public static bool IsPlausibleToday(DateOnly date) =>
         date >= UtcToday.AddDays(-1) && date <= UtcToday.AddDays(1);
 
-    public const string InvalidMessage = "التاريخ يجب أن يكون بالصيغة yyyy-MM-dd وألا يكون في المستقبل.";
+    public static string InvalidMessage => Lang.T(
+        "التاريخ يجب أن يكون بالصيغة yyyy-MM-dd وألا يكون في المستقبل.",
+        "The date must be in yyyy-MM-dd format and not in the future.");
 
     public static IRuleBuilderOptions<T, string> MustBeApiDate<T>(this IRuleBuilder<T, string> rule) =>
-        rule.Must(value => TryParse(value, out _)).WithMessage(InvalidMessage);
+        rule.Must(value => TryParse(value, out _)).WithMessage(_ => InvalidMessage);
 }

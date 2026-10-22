@@ -12,7 +12,7 @@ let cleanup = null;
 export function startRouter({ mainEl, navEl, tabs, hidden = {} }) {
   main = mainEl;
   nav = navEl;
-  routes = new Map([...tabs.map((t) => [t.key, t.mount]), ...Object.entries(hidden)]);
+  routes = new Map([...tabs.map((tab) => [tab.key, tab.mount]), ...Object.entries(hidden)]);
 
   fill(nav, ...tabs.map((tab) =>
     h('a', { class: 'tab', href: `#${tab.key}`, dataset: { tab: tab.key } }, icon(tab.icon, 18), h('span', { text: tab.label }))));
