@@ -138,22 +138,23 @@ dotnet Himma.Api.dll --migrate
 
 ### 2.3 Render (خطوة بخطوة)
 
-1. ادخل https://render.com واربط حساب GitHub (المستودع خاص، فامنح Render صلاحية الوصول إليه).
-2. **New → PostgreSQL**: أنشئ قاعدة بيانات، وانسخ **Internal Database URL**.
-3. **New → Web Service**: اختر مستودع `Himma`، وسيتعرّف على `Dockerfile`.
-   - **Health Check Path**: `/health`
-   - **Environment**: أضف المتغيرات من الجدول 2.1، وضع الـ Internal Database URL في `DATABASE_URL`.
-   - **Pre-Deploy Command**: `dotnet Himma.Api.dll --migrate`
-4. اضغط **Deploy**. Render يوفّر HTTPS تلقائياً على `https://<اسمك>.onrender.com`.
+الملف `render.yaml` (Blueprint) ينشئ التطبيق وقاعدة البيانات معاً على الخطة المجانية، ويولّد `Jwt__Key` تلقائياً.
 
-> إن كانت خطتك لا تدعم Pre-Deploy Command: شغّل `--migrate` من جهازك مرة قبل كل نشر فيه تحديث لقاعدة البيانات، باستخدام **External Database URL**:
-> ```
-> cd src/Himma.Api
-> $env:ASPNETCORE_ENVIRONMENT="Production"; $env:Database__Provider="Postgres"; $env:DATABASE_URL="<External Database URL>?sslmode=require"; $env:Jwt__Key="<أي مفتاح طويل>"
-> dotnet run --no-launch-profile -- --migrate
-> ```
+1. ادخل https://render.com، سجّل الدخول بحساب GitHub، وامنح Render صلاحية الوصول لمستودع `Himma` (المستودع خاص).
+2. **New → Blueprint**، اختر مستودع `Himma`، واكتب اسم المدير وكلمة مروره عندما يُطلب `Admin__Username` و`Admin__Password`، ثم **Apply**.
+3. أول تشغيل **سيفشل** لأن قاعدة البيانات فارغة؛ هذا متوقع.
+4. من صفحة قاعدة البيانات `himma-db` → **Connect** → انسخ **External Database URL**، ثم على جهازك من مجلد المشروع:
+   ```
+   .\scripts\migrate-render.ps1
+   ```
+   والصق الرابط عندما يُطلب (لن يظهر على الشاشة).
+5. في صفحة خدمة `himma`: **Manual Deploy → Deploy latest commit**. بعدها يعمل على `https://<الاسم>.onrender.com`.
+
+> كرر الخطوة 4 قبل نشر أي تحديث فيه مهاجرة جديدة (مجلد جديد في `Migrations`).
 >
-> في الخطة المجانية ينام التطبيق عند عدم الاستخدام، فمهمة الحذف التلقائي للحسابات تعمل حين يكون مستيقظاً فقط.
+> في الخطة المدفوعة يمكنك بدلاً من ذلك وضع **Pre-Deploy Command** = `dotnet Himma.Api.dll --migrate` فيتم ذلك تلقائياً.
+>
+> الخطة المجانية: التطبيق ينام بعد 15 دقيقة من عدم الاستخدام (أول فتح يأخذ دقيقة تقريباً)، وقاعدة البيانات المجانية **تُحذف بعد 30 يوماً** إن لم تُرقَّ.
 
 ### 2.4 Railway
 
