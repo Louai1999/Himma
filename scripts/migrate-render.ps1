@@ -10,7 +10,7 @@
   this run (it is never written to a file).
 
 .EXAMPLE
-  .\scripts\migrate-render.ps1
+  powershell -ExecutionPolicy Bypass -File .\scripts\migrate-render.ps1
 #>
 param(
     # Optional: pass the URL directly (otherwise you are asked for it).

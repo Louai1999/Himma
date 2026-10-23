@@ -145,7 +145,7 @@ dotnet Himma.Api.dll --migrate
 3. أول تشغيل **سيفشل** لأن قاعدة البيانات فارغة؛ هذا متوقع.
 4. من صفحة قاعدة البيانات `himma-db` → **Connect** → انسخ **External Database URL**، ثم على جهازك من مجلد المشروع:
    ```
-   .\scripts\migrate-render.ps1
+   powershell -ExecutionPolicy Bypass -File .\scripts\migrate-render.ps1
    ```
    والصق الرابط عندما يُطلب (لن يظهر على الشاشة).
 5. في صفحة خدمة `himma`: **Manual Deploy → Deploy latest commit**. بعدها يعمل على `https://<الاسم>.onrender.com`.
