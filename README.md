@@ -9,6 +9,10 @@
 
 تقرير الأمان بنداً بنداً: [SECURITY.md](SECURITY.md).
 
+**الترخيص:** جميع الحقوق محفوظة. الكود منشور للعرض فقط، ولا يُسمح بنسخه أو استخدامه بدون إذن مكتوب. انظر [LICENSE](LICENSE).
+
+**License:** All rights reserved. The code is published for viewing only; no copying or use without written permission. See [LICENSE](LICENSE).
+
 ---
 
 ## 1. التشغيل على جهازك (Windows)
