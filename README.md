@@ -142,15 +142,13 @@ dotnet Himma.Api.dll --migrate
 
 1. ادخل https://render.com، سجّل الدخول بحساب GitHub، وامنح Render صلاحية الوصول لمستودع `Himma` (المستودع خاص).
 2. **New → Blueprint**، اختر مستودع `Himma`، واكتب اسم المدير وكلمة مروره عندما يُطلب `Admin__Username` و`Admin__Password`، ثم **Apply**.
-3. أول تشغيل **سيفشل** لأن قاعدة البيانات فارغة؛ هذا متوقع.
-4. من صفحة قاعدة البيانات `himma-db` → **Connect** → انسخ **External Database URL**، ثم على جهازك من مجلد المشروع:
-   ```
-   powershell -ExecutionPolicy Bypass -File .\scripts\migrate-render.ps1
-   ```
-   والصق الرابط عندما يُطلب (لن يظهر على الشاشة).
-5. في صفحة خدمة `himma`: **Manual Deploy → Deploy latest commit**. بعدها يعمل على `https://<الاسم>.onrender.com`.
+3. انتظر حتى ينتهي النشر. التطبيق يطبّق تحديثات قاعدة البيانات بنفسه عند التشغيل (`Database__AutoMigrate=true` في `render.yaml`)، فلا تحتاج أي أمر على جهازك.
+4. افتح `https://<الاسم>.onrender.com/health`، ثم سجّل حساباً، ثم ادخل `/admin.html` بحساب المدير.
 
-> كرر الخطوة 4 قبل نشر أي تحديث فيه مهاجرة جديدة (مجلد جديد في `Migrations`).
+> لا تنسخ رابط قاعدة البيانات ولا تلصقه في أي مكان؛ Render يربطه بالتطبيق داخلياً.
+>
+> السكربت `scripts/migrate-render.ps1` بديل اختياري لو أردت إيقاف `Database__AutoMigrate` وتطبيق التحديثات يدوياً:
+> `powershell -ExecutionPolicy Bypass -File .\scripts\migrate-render.ps1`
 >
 > في الخطة المدفوعة يمكنك بدلاً من ذلك وضع **Pre-Deploy Command** = `dotnet Himma.Api.dll --migrate` فيتم ذلك تلقائياً.
 >
