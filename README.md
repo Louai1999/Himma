@@ -140,23 +140,33 @@ dotnet Himma.Api.dll --migrate
 ```
 هذا الأمر يطبّق التحديثات، وينشئ حساب المدير والأطعمة والتمارين، ثم يخرج.
 
-### 2.3 Render (خطوة بخطوة)
+### 2.3 Render + Supabase (خطوة بخطوة)
 
-الملف `render.yaml` (Blueprint) ينشئ التطبيق وقاعدة البيانات معاً على الخطة المجانية، ويولّد `Jwt__Key` تلقائياً.
+التطبيق على Render (الخطة المجانية)، وقاعدة البيانات PostgreSQL على Supabase (مجانية ولا تنتهي بعد 30 يوماً). الملف `render.yaml` (Blueprint) ينشئ التطبيق ويولّد `Jwt__Key` تلقائياً.
 
-1. ادخل https://render.com، سجّل الدخول بحساب GitHub، وامنح Render صلاحية الوصول لمستودع `Himma` (المستودع خاص).
-2. **New → Blueprint**، اختر مستودع `Himma`، واكتب اسم المدير وكلمة مروره عندما يُطلب `Admin__Username` و`Admin__Password`، ثم **Apply**.
-3. انتظر حتى ينتهي النشر. التطبيق يطبّق تحديثات قاعدة البيانات بنفسه عند التشغيل (`Database__AutoMigrate=true` في `render.yaml`)، فلا تحتاج أي أمر على جهازك.
+**أولاً: قاعدة البيانات على Supabase**
+
+1. ادخل https://supabase.com → **New project**، المنطقة **Central EU (Frankfurt)** لتكون قريبة من Render.
+2. كلمة مرور القاعدة: اضغط **Generate a password** (حروف وأرقام فقط، فلا تحتاج ترميزاً في الرابط) واحفظها في مدير كلمات المرور.
+3. **ألغِ تفعيل Data API** (عند الإنشاء في Security options، أو لاحقاً من Project Settings → Data API). هِمّة يتصل بالقاعدة مباشرة ولا يحتاجها، وإبقاؤها مفعّلة قد يكشف الجداول عبر مفتاح `anon` العام.
+4. **Connect** → **Connection string** → اختر **Session pooler** (وليس Direct connection، لأن Render لا يدعم IPv6؛ وليس Transaction pooler على المنفذ 6543). انسخ الرابط وضع كلمة المرور مكان `[YOUR-PASSWORD]` وأضف في آخره `?sslmode=require`. الشكل:
+   `postgresql://postgres.<المعرّف>:<كلمة المرور>@aws-0-eu-central-1.pooler.supabase.com:5432/postgres?sslmode=require`
+
+**ثانياً: التطبيق على Render**
+
+1. ادخل https://render.com، سجّل الدخول بحساب GitHub، وامنح Render صلاحية الوصول لمستودع `Himma`.
+2. **New → Blueprint**، اختر مستودع `Himma`، واكتب عندما يُطلب: `DATABASE_URL` (رابط Supabase) و`Admin__Username` و`Admin__Password`، ثم **Apply**.
+3. انتظر حتى ينتهي النشر. التطبيق يطبّق تحديثات قاعدة البيانات وينشئ حساب المدير بنفسه عند التشغيل (`Database__AutoMigrate=true`)، فلا تحتاج أي أمر على جهازك.
 4. افتح `https://<الاسم>.onrender.com/health`، ثم سجّل حساباً، ثم ادخل `/admin.html` بحساب المدير.
 
-> لا تنسخ رابط قاعدة البيانات ولا تلصقه في أي مكان؛ Render يربطه بالتطبيق داخلياً.
+> رابط قاعدة البيانات سرّ: مكانه **Environment** في Render فقط، لا في الكود ولا في الطرفية ولا في المحادثات.
+>
+> لو لم يُنشأ حساب المدير: ابحث في **Logs** عن `could not be created`؛ `CommonPassword` يعني أن كلمة المرور سهلة أو تحتوي اسم المستخدم.
 >
 > السكربت `scripts/migrate-render.ps1` بديل اختياري لو أردت إيقاف `Database__AutoMigrate` وتطبيق التحديثات يدوياً:
 > `powershell -ExecutionPolicy Bypass -File .\scripts\migrate-render.ps1`
 >
-> في الخطة المدفوعة يمكنك بدلاً من ذلك وضع **Pre-Deploy Command** = `dotnet Himma.Api.dll --migrate` فيتم ذلك تلقائياً.
->
-> الخطة المجانية: التطبيق ينام بعد 15 دقيقة من عدم الاستخدام (أول فتح يأخذ دقيقة تقريباً)، وقاعدة البيانات المجانية **تُحذف بعد 30 يوماً** إن لم تُرقَّ.
+> الخطة المجانية: تطبيق Render ينام بعد 15 دقيقة من عدم الاستخدام (أول فتح يأخذ دقيقة تقريباً)، ومشروع Supabase المجاني **يتوقف مؤقتاً بعد أسبوع بلا أي نشاط** (تعيد تشغيله من لوحة Supabase، والبيانات تبقى).
 
 ### 2.4 Railway
 
@@ -172,7 +182,7 @@ dotnet Himma.Api.dll --migrate
 2. أنشئ **Web App** بنظام Linux ونوع **Container**، وابنِ الصورة من `Dockerfile` (عبر Azure Container Registry أو GitHub Actions).
 3. **Configuration → Application settings**: أضف المتغيرات من الجدول 2.1 (ومعها `WEBSITES_PORT=8080`).
 4. **Health check**: المسار `/health`.
-5. شغّل `--migrate` قبل أول تشغيل (من جهازك كما في 2.3، أو كأمر بدء مؤقت).
+5. شغّل `--migrate` قبل أول تشغيل (من جهازك بالسكربت في 2.3، أو كأمر بدء مؤقت).
 6. فعّل **HTTPS Only** من إعدادات TLS/SSL.
 
 ### 2.6 بعد الرفع: قائمة تحقق
