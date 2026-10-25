@@ -12,6 +12,10 @@ public class UserProfile
     public ActivityLevel ActivityLevel { get; set; }
     public Goal Goal { get; set; }
     public double? TargetWeightKg { get; set; }
+
+    /// <summary>Body fat goal, set from the body composition screen.</summary>
+    public double? TargetBodyFatPercent { get; set; }
+
     public DateTime UpdatedAtUtc { get; set; }
 }
 

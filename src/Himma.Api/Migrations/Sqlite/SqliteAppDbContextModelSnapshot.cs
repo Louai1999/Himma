@@ -156,6 +156,54 @@ namespace Himma.Api.Migrations.Sqlite
                     b.ToTable("AuditLogs");
                 });
 
+            modelBuilder.Entity("Himma.Api.Domain.Entities.BodyMeasurement", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<double?>("ArmCm")
+                        .HasColumnType("REAL");
+
+                    b.Property<double?>("BodyFatPercent")
+                        .HasColumnType("REAL");
+
+                    b.Property<double?>("ChestCm")
+                        .HasColumnType("REAL");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("TEXT");
+
+                    b.Property<double?>("HipCm")
+                        .HasColumnType("REAL");
+
+                    b.Property<double?>("MuscleMassKg")
+                        .HasColumnType("REAL");
+
+                    b.Property<double?>("NeckCm")
+                        .HasColumnType("REAL");
+
+                    b.Property<double?>("ThighCm")
+                        .HasColumnType("REAL");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<double?>("WaistCm")
+                        .HasColumnType("REAL");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "Date")
+                        .IsUnique();
+
+                    b.ToTable("BodyMeasurements");
+                });
+
             modelBuilder.Entity("Himma.Api.Domain.Entities.CoachMessage", b =>
                 {
                     b.Property<int>("Id")
@@ -464,6 +512,9 @@ namespace Himma.Api.Migrations.Sqlite
                         .HasColumnType("TEXT");
 
                     b.Property<double>("HeightCm")
+                        .HasColumnType("REAL");
+
+                    b.Property<double?>("TargetBodyFatPercent")
                         .HasColumnType("REAL");
 
                     b.Property<double?>("TargetWeightKg")
@@ -847,6 +898,15 @@ namespace Himma.Api.Migrations.Sqlite
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("AspNetUserTokens", (string)null);
+                });
+
+            modelBuilder.Entity("Himma.Api.Domain.Entities.BodyMeasurement", b =>
+                {
+                    b.HasOne("Himma.Api.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Himma.Api.Domain.Entities.CoachMessage", b =>

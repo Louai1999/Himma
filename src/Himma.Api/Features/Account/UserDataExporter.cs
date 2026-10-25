@@ -75,7 +75,7 @@ public sealed class UserDataExporter(AppDbContext db)
             ExportedAtUtc = DateTime.UtcNow,
             Account = account,
             Profile = await db.UserProfiles.AsNoTracking().Where(p => p.UserId == userId)
-                .Select(p => new { p.Gender, p.Age, p.HeightCm, p.WeightKg, p.ActivityLevel, p.Goal, p.TargetWeightKg, p.UpdatedAtUtc })
+                .Select(p => new { p.Gender, p.Age, p.HeightCm, p.WeightKg, p.ActivityLevel, p.Goal, p.TargetWeightKg, p.TargetBodyFatPercent, p.UpdatedAtUtc })
                 .FirstOrDefaultAsync(cancellationToken),
             Meals = await db.MealEntries.AsNoTracking().Where(m => m.UserId == userId).OrderBy(m => m.Date).ThenBy(m => m.CreatedAtUtc)
                 .Select(m => new { m.Date, m.MealType, m.Name, m.Grams, m.Calories, m.ProteinG, m.CarbsG, m.FatG, m.Source, m.CreatedAtUtc })
@@ -85,6 +85,9 @@ public sealed class UserDataExporter(AppDbContext db)
                 .ToListAsync(cancellationToken),
             Weights = await db.WeightEntries.AsNoTracking().Where(w => w.UserId == userId).OrderBy(w => w.Date)
                 .Select(w => new { w.Date, w.WeightKg })
+                .ToListAsync(cancellationToken),
+            BodyMeasurements = await db.BodyMeasurements.AsNoTracking().Where(m => m.UserId == userId).OrderBy(m => m.Date)
+                .Select(m => new { m.Date, m.NeckCm, m.WaistCm, m.HipCm, m.ChestCm, m.ArmCm, m.ThighCm, m.BodyFatPercent, m.MuscleMassKg })
                 .ToListAsync(cancellationToken),
             WaterReminder = await db.WaterReminderSettings.AsNoTracking().Where(r => r.UserId == userId)
                 .Select(r => new { r.Enabled, r.IntervalHours })

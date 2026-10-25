@@ -21,7 +21,7 @@ document.title = t('هِمّة');
 const TABS = [
   { key: 'today', label: t('اليوم'), icon: 'today', mount: today.mount },
   { key: 'workouts', label: t('التمارين'), icon: 'workouts', mount: workouts.mount },
-  { key: 'weight', label: t('الوزن'), icon: 'weight', mount: weight.mount },
+  { key: 'weight', label: t('الجسم'), icon: 'weight', mount: weight.mount },
   { key: 'history', label: t('السجل'), icon: 'history', mount: historyScreen.mount },
   { key: 'profile', label: t('حسابي'), icon: 'profile', mount: profile.mount },
 ];

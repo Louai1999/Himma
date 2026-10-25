@@ -7,6 +7,8 @@ public sealed record DailyTargets(
     int Tdee,
     int TargetCalories,
     int ProteinTargetG,
+    int CarbsTargetG,
+    int FatTargetG,
     int WaterTargetMl,
     IReadOnlyList<string> Warnings);
 
@@ -23,6 +25,10 @@ public static class TargetCalculator
 {
     public const int FemaleCalorieFloor = 1200;
     public const int MaleCalorieFloor = 1500;
+
+    /// <summary>Fat gives 25% of the calories, but never less than 0.6 g per kg (hormones need it).</summary>
+    public const double FatShareOfCalories = 0.25;
+    public const double MinFatPerKg = 0.6;
 
     public static DailyTargets Calculate(UserProfile profile) =>
         Calculate(profile.Gender, profile.Age, profile.HeightCm, profile.WeightKg, profile.ActivityLevel, profile.Goal);
@@ -55,13 +61,20 @@ public static class TargetCalculator
             _ => 1.6,
         };
 
+        var proteinG = weightKg * proteinPerKg;
+        var fatG = Math.Max(calories * FatShareOfCalories / 9, weightKg * MinFatPerKg);
+        // Carbs fill the rest of the calories.
+        var carbsG = Math.Max(0, (calories - proteinG * 4 - fatG * 9) / 4);
+
         var waterMl = (int)Math.Round(weightKg * 33 / 50, MidpointRounding.AwayFromZero) * 50 + WaterBonusMl(activity);
 
         return new DailyTargets(
             Round(bmr),
             Round(tdee),
             Round(calories),
-            Round(weightKg * proteinPerKg),
+            Round(proteinG),
+            Round(carbsG),
+            Round(fatG),
             waterMl,
             warnings);
     }

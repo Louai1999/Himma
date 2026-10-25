@@ -28,6 +28,9 @@ export function targetsList(targets) {
       stat(targets.targetCalories, t('سعرة يومياً')),
       stat(targets.proteinTargetG, t('غ بروتين')),
       stat(targets.waterTargetMl, t('مل ماء'))),
+    h('div', { class: 'grid-2' },
+      stat(targets.carbsTargetG, t('غ كربوهيدرات')),
+      stat(targets.fatTargetG, t('غ دهون'))),
     h('p', { class: 'muted small', text: t('معدل الحرق الأساسي {bmr} سعرة، واحتياجك مع النشاط {tdee} سعرة.', { bmr: fmt(targets.bmr), tdee: fmt(targets.tdee) }) }),
     targets.warnings.map((w) => calmNotice(targetWarnings[w] ?? w)));
 }

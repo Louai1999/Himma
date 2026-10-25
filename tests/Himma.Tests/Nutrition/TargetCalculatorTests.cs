@@ -43,6 +43,25 @@ public sealed class TargetCalculatorTests
     }
 
     [Fact]
+    public void Fat_is_a_quarter_of_calories_and_carbs_fill_the_rest()
+    {
+        var t = TargetCalculator.Calculate(Gender.Male, 30, 180, 80, ActivityLevel.Moderate, Goal.Lose);
+
+        Assert.Equal(63, t.FatTargetG);              // 2259 * 25% / 9 = 62.75
+        Assert.Equal(264, t.CarbsTargetG);           // (2259 - 160*4 - 62.75*9) / 4 = 263.6
+    }
+
+    [Fact]
+    public void Fat_never_goes_below_0_6_g_per_kg()
+    {
+        // Floor target 1500 kcal for 120 kg: 25% is 41.7 g, but 0.6 * 120 = 72 g.
+        var t = TargetCalculator.Calculate(Gender.Male, 70, 155, 120, ActivityLevel.Sedentary, Goal.Lose);
+
+        Assert.Equal(72, t.FatTargetG);
+        Assert.True(t.CarbsTargetG >= 0);
+    }
+
+    [Fact]
     public void Female_target_is_clamped_to_1200_with_a_warning()
     {
         // TDEE = (450 + 937.5 - 300 - 161) * 1.2 = 1111.8; minus 500 = 611.8

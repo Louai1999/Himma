@@ -7,10 +7,11 @@ import { lineChart } from '../ui/charts.js';
 import { field, numberInput, readNumber, showErrors, clearErrors } from '../ui/forms.js';
 import { calmNotice, loadInto } from '../ui/notice.js';
 import { showSaved } from '../ui/toast.js';
+import { bodySection } from './bodycomp.js';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-/** Weight: log a weight, see progress towards the target and the last 30 days. */
+/** Body tab: log a weight, see progress towards the target and the last 30 days, then body composition. */
 export function mount(view) {
   const progressCard = h('div', { class: 'card' });
   const chartCard = h('div', { class: 'card' });
@@ -21,7 +22,8 @@ export function mount(view) {
     logForm(load),
     progressCard,
     chartCard,
-    listCard);
+    listCard,
+    bodySection());
 
   load();
 

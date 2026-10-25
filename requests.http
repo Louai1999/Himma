@@ -198,6 +198,37 @@ Content-Type: application/json
   "weightKg": 79.5
 }
 
+######################## Body composition ########################
+
+### Measurements, body fat / lean mass / FFMI per entry, and the goal projection
+GET {{baseUrl}}/api/body
+Authorization: Bearer {{token}}
+
+### Save measurements (same date again replaces them). Women also need hipCm for the tape estimate.
+POST {{baseUrl}}/api/body
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "date": "{{today}}",
+  "neckCm": 38,
+  "waistCm": 90,
+  "armCm": 37.5
+}
+
+### Body fat goal (null clears it)
+PUT {{baseUrl}}/api/body/goal
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "targetBodyFatPercent": 12
+}
+
+### Delete a measurement
+DELETE {{baseUrl}}/api/body/1
+Authorization: Bearer {{token}}
+
 
 ######################## History ########################
 

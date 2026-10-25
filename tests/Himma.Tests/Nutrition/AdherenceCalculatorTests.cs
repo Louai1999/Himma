@@ -6,7 +6,7 @@ public sealed class AdherenceCalculatorTests
 {
     private static readonly AdherenceThresholds Defaults = new(10, 90, 80);
     private static readonly DateOnly Today = new(2026, 10, 22);
-    private static readonly DailyTargets Targets = new(1700, 2000, 2000, 150, 2500, []);
+    private static readonly DailyTargets Targets = new(1700, 2000, 2000, 150, 200, 60, 2500, []);
 
     private static DayTotals Day(int daysAgo, double calories = 2000, double protein = 150, int water = 2500, int meals = 3) =>
         new(Today.AddDays(-daysAgo), calories, protein, water, meals);

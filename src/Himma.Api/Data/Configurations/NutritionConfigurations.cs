@@ -71,3 +71,12 @@ public sealed class WaterReminderSettingConfiguration : IEntityTypeConfiguration
         b.HasOne<ApplicationUser>().WithOne().HasForeignKey<WaterReminderSetting>(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
     }
 }
+
+public sealed class BodyMeasurementConfiguration : IEntityTypeConfiguration<BodyMeasurement>
+{
+    public void Configure(EntityTypeBuilder<BodyMeasurement> b)
+    {
+        b.HasIndex(x => new { x.UserId, x.Date }).IsUnique();
+        b.HasOne<ApplicationUser>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
+    }
+}

@@ -163,6 +163,56 @@ namespace Himma.Api.Migrations.Postgres
                     b.ToTable("AuditLogs");
                 });
 
+            modelBuilder.Entity("Himma.Api.Domain.Entities.BodyMeasurement", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<double?>("ArmCm")
+                        .HasColumnType("double precision");
+
+                    b.Property<double?>("BodyFatPercent")
+                        .HasColumnType("double precision");
+
+                    b.Property<double?>("ChestCm")
+                        .HasColumnType("double precision");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<double?>("HipCm")
+                        .HasColumnType("double precision");
+
+                    b.Property<double?>("MuscleMassKg")
+                        .HasColumnType("double precision");
+
+                    b.Property<double?>("NeckCm")
+                        .HasColumnType("double precision");
+
+                    b.Property<double?>("ThighCm")
+                        .HasColumnType("double precision");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<double?>("WaistCm")
+                        .HasColumnType("double precision");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "Date")
+                        .IsUnique();
+
+                    b.ToTable("BodyMeasurements");
+                });
+
             modelBuilder.Entity("Himma.Api.Domain.Entities.CoachMessage", b =>
                 {
                     b.Property<int>("Id")
@@ -483,6 +533,9 @@ namespace Himma.Api.Migrations.Postgres
                         .HasColumnType("character varying(16)");
 
                     b.Property<double>("HeightCm")
+                        .HasColumnType("double precision");
+
+                    b.Property<double?>("TargetBodyFatPercent")
                         .HasColumnType("double precision");
 
                     b.Property<double?>("TargetWeightKg")
@@ -884,6 +937,15 @@ namespace Himma.Api.Migrations.Postgres
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("AspNetUserTokens", (string)null);
+                });
+
+            modelBuilder.Entity("Himma.Api.Domain.Entities.BodyMeasurement", b =>
+                {
+                    b.HasOne("Himma.Api.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Himma.Api.Domain.Entities.CoachMessage", b =>
