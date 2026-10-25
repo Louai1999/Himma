@@ -22,6 +22,22 @@ namespace Himma.Api.Migrations.Postgres
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Himma.Api.Domain.Entities.AppSetting", b =>
+                {
+                    b.Property<string>("Key")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.HasKey("Key");
+
+                    b.ToTable("AppSettings");
+                });
+
             modelBuilder.Entity("Himma.Api.Domain.Entities.ApplicationUser", b =>
                 {
                     b.Property<string>("Id")
@@ -457,6 +473,56 @@ namespace Himma.Api.Migrations.Postgres
                     b.ToTable("MealEntries");
                 });
 
+            modelBuilder.Entity("Himma.Api.Domain.Entities.PushDevice", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Auth")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Endpoint")
+                        .IsRequired()
+                        .HasMaxLength(600)
+                        .HasColumnType("character varying(600)");
+
+                    b.Property<string>("Language")
+                        .IsRequired()
+                        .HasMaxLength(8)
+                        .HasColumnType("character varying(8)");
+
+                    b.Property<string>("P256dh")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("TimeZone")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Endpoint")
+                        .IsUnique();
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("PushDevices");
+                });
+
             modelBuilder.Entity("Himma.Api.Domain.Entities.RefreshToken", b =>
                 {
                     b.Property<int>("Id")
@@ -507,6 +573,94 @@ namespace Himma.Api.Migrations.Postgres
                     b.HasIndex("UserId");
 
                     b.ToTable("RefreshTokens");
+                });
+
+            modelBuilder.Entity("Himma.Api.Domain.Entities.Supplement", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<double?>("Calories")
+                        .HasColumnType("double precision");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("DaysMask")
+                        .HasColumnType("integer");
+
+                    b.Property<double>("Dose")
+                        .HasColumnType("double precision");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<double?>("ProteinG")
+                        .HasColumnType("double precision");
+
+                    b.Property<string>("Times")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("Unit")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Supplements");
+                });
+
+            modelBuilder.Entity("Himma.Api.Domain.Entities.SupplementIntake", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<int?>("MealEntryId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("SupplementId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("TakenAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MealEntryId");
+
+                    b.HasIndex("SupplementId", "Date");
+
+                    b.HasIndex("UserId", "Date");
+
+                    b.ToTable("SupplementIntakes");
                 });
 
             modelBuilder.Entity("Himma.Api.Domain.Entities.UserProfile", b =>
@@ -983,8 +1137,46 @@ namespace Himma.Api.Migrations.Postgres
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Himma.Api.Domain.Entities.PushDevice", b =>
+                {
+                    b.HasOne("Himma.Api.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Himma.Api.Domain.Entities.RefreshToken", b =>
                 {
+                    b.HasOne("Himma.Api.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Himma.Api.Domain.Entities.Supplement", b =>
+                {
+                    b.HasOne("Himma.Api.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Himma.Api.Domain.Entities.SupplementIntake", b =>
+                {
+                    b.HasOne("Himma.Api.Domain.Entities.MealEntry", null)
+                        .WithMany()
+                        .HasForeignKey("MealEntryId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Himma.Api.Domain.Entities.Supplement", null)
+                        .WithMany()
+                        .HasForeignKey("SupplementId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("Himma.Api.Domain.Entities.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")

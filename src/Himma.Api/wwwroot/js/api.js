@@ -14,6 +14,7 @@ export class ApiError extends Error {
     this.title = problem?.title ?? null;
     this.detail = problem?.detail ?? null;
     this.errors = problem?.errors ?? {};
+    this.problem = problem ?? null; // extra fields, e.g. takenAtUtc on a 409
   }
 
   get isNetwork() { return this.status === 0; }

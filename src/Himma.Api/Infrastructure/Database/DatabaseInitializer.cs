@@ -1,5 +1,6 @@
 using Himma.Api.Data;
 using Himma.Api.Data.Seed;
+using Himma.Api.Infrastructure.Push;
 using Himma.Api.Options;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -39,5 +40,6 @@ public static class DatabaseInitializer
         await IdentitySeeder.SeedAsync(provider, logger);
         await FoodSeeder.SeedAsync(db, logger, cancellationToken);
         await ExerciseSeeder.SeedAsync(db, logger, cancellationToken);
+        await provider.GetRequiredService<PushKeyStore>().EnsureAsync(db, logger, cancellationToken);
     }
 }

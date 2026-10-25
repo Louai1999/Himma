@@ -11,6 +11,7 @@ import { showSaved } from '../ui/toast.js';
 import { openAddMeal } from './meals.js';
 import { fetchProfile } from './profile.js';
 import { startAndOpenSession } from './session.js';
+import { todaySupplementsCard } from './supplements.js';
 
 const QUICK_WATER = [250, 500, 750];
 
@@ -30,12 +31,15 @@ export function mount(view) {
 
   add(view,
     h('header', { class: 'view-head' }, h('h1', { text: t('اليوم') }), h('p', { class: 'muted', text: formatLong(date) })),
-    tipBox, ringsCard, mealsCard, waterCard, workoutCard);
+    tipBox, ringsCard, mealsCard, todaySupplementsCard(), waterCard, workoutCard);
 
   load();
   loadTip();
   loadWorkout();
-  return on('water-changed', (event) => { if (event?.date === date) reloadWater(); });
+  const offWater = on('water-changed', (event) => { if (event?.date === date) reloadWater(); });
+  // A supplement with protein or calories adds a meal entry when taken.
+  const offMeals = on('meals-changed', (event) => { if (event?.date === date) load(); });
+  return () => { offWater(); offMeals(); };
 
   async function load() {
     fill(ringsCard, skeleton());
@@ -119,7 +123,8 @@ export function mount(view) {
       h('div', { class: 'grow' },
         h('div', { class: 'title', text: meal.name }),
         h('div', { class: 'meta' },
-          h('span', { class: 'num', text: fmt(meal.grams) }), t(' غ · '),
+          // Supplements measured in scoops or capsules have no grams.
+          meal.grams > 0 && [h('span', { class: 'num', text: fmt(meal.grams) }), t(' غ · ')],
           h('span', { class: 'num', text: fmt(meal.calories) }), t(' سعرة · '),
           h('span', { class: 'num', text: fmt(meal.proteinG) }), t(' غ بروتين'))),
       !meal.pending && h('button', {

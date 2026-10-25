@@ -5,6 +5,8 @@ using Himma.Api.Data;
 using Himma.Api.Features.Account;
 using Himma.Api.Features.Admin;
 using Himma.Api.Features.History;
+using Himma.Api.Features.Supplements;
+using Himma.Api.Infrastructure.Push;
 using Himma.Api.Infrastructure.Audit;
 using Himma.Api.Features.Workouts;
 using Himma.Api.Infrastructure.Auth;
@@ -51,6 +53,17 @@ builder.Services.AddScoped<AccountLifecycleService>();
 builder.Services.AddScoped<UserDataExporter>();
 builder.Services.AddScoped<AdminMetricsService>();
 builder.Services.AddHostedService<ScheduledPurgeService>();
+
+// Supplements and reminders (Web Push).
+builder.Services.AddDataProtection();
+builder.Services.AddOptions<PushOptions>().Bind(builder.Configuration.GetSection(PushOptions.SectionName));
+builder.Services.AddOptions<ReminderOptions>().Bind(builder.Configuration.GetSection(ReminderOptions.SectionName));
+builder.Services.AddSingleton<PushKeyStore>();
+builder.Services.AddSingleton<TakeTokens>();
+builder.Services.AddScoped<SupplementIntakeService>();
+builder.Services.AddHttpClient<IPushSender, WebPushSender>(client => client.Timeout = TimeSpan.FromSeconds(15));
+builder.Services.AddSingleton<ReminderService>();
+builder.Services.AddHostedService(provider => provider.GetRequiredService<ReminderService>());
 
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();

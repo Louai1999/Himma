@@ -6,8 +6,8 @@ import { h, fill, add } from '../ui/dom.js';
 import { icon } from '../ui/icons.js';
 import { showSaved } from '../ui/toast.js';
 
-// Water reminder: while the app is open, a calm banner (and a browser notification if allowed)
-// appears every N hours. Settings are stored per user on the server.
+// Water reminder while the app is open: a calm banner every N hours. When the app is closed, the
+// server sends the reminder as a push notification instead (see push.js). Settings are stored per user.
 
 let timer = null;
 
@@ -36,10 +36,6 @@ export async function addWater(ml, date = todayLocal()) {
 }
 
 function remind() {
-  if ('Notification' in window && Notification.permission === 'granted' && document.hidden) {
-    new Notification(t('هِمّة'), { body: t('وقت كوب ماء. جسمك يشكرك.'), icon: 'assets/himma-logo.svg' });
-  }
-
   const slot = document.getElementById('banner-slot');
   if (!slot) return;
   const close = () => fill(slot);

@@ -86,6 +86,16 @@ public sealed class UserDataExporter(AppDbContext db)
             Weights = await db.WeightEntries.AsNoTracking().Where(w => w.UserId == userId).OrderBy(w => w.Date)
                 .Select(w => new { w.Date, w.WeightKg })
                 .ToListAsync(cancellationToken),
+            Supplements = await db.Supplements.AsNoTracking().Where(s => s.UserId == userId).OrderBy(s => s.CreatedAtUtc)
+                .Select(s => new { s.Id, s.Name, s.Dose, s.Unit, s.Times, s.DaysMask, s.ProteinG, s.Calories, s.Notes, s.CreatedAtUtc })
+                .ToListAsync(cancellationToken),
+            SupplementIntakes = await db.SupplementIntakes.AsNoTracking().Where(i => i.UserId == userId).OrderBy(i => i.TakenAtUtc)
+                .Select(i => new { i.SupplementId, i.Date, i.TakenAtUtc })
+                .ToListAsync(cancellationToken),
+            // Endpoints are left out on purpose: they work like a password for sending to the device.
+            NotificationDevices = await db.PushDevices.AsNoTracking().Where(d => d.UserId == userId)
+                .Select(d => new { d.TimeZone, d.Language, d.CreatedAtUtc })
+                .ToListAsync(cancellationToken),
             BodyMeasurements = await db.BodyMeasurements.AsNoTracking().Where(m => m.UserId == userId).OrderBy(m => m.Date)
                 .Select(m => new { m.Date, m.NeckCm, m.WaistCm, m.HipCm, m.ChestCm, m.ArmCm, m.ThighCm, m.BodyFatPercent, m.MuscleMassKg })
                 .ToListAsync(cancellationToken),

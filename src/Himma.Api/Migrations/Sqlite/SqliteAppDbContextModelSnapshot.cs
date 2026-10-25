@@ -17,6 +17,22 @@ namespace Himma.Api.Migrations.Sqlite
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.32");
 
+            modelBuilder.Entity("Himma.Api.Domain.Entities.AppSetting", b =>
+                {
+                    b.Property<string>("Key")
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Key");
+
+                    b.ToTable("AppSettings");
+                });
+
             modelBuilder.Entity("Himma.Api.Domain.Entities.ApplicationUser", b =>
                 {
                     b.Property<string>("Id")
@@ -438,6 +454,54 @@ namespace Himma.Api.Migrations.Sqlite
                     b.ToTable("MealEntries");
                 });
 
+            modelBuilder.Entity("Himma.Api.Domain.Entities.PushDevice", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Auth")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Endpoint")
+                        .IsRequired()
+                        .HasMaxLength(600)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Language")
+                        .IsRequired()
+                        .HasMaxLength(8)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("P256dh")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("TimeZone")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Endpoint")
+                        .IsUnique();
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("PushDevices");
+                });
+
             modelBuilder.Entity("Himma.Api.Domain.Entities.RefreshToken", b =>
                 {
                     b.Property<int>("Id")
@@ -486,6 +550,90 @@ namespace Himma.Api.Migrations.Sqlite
                     b.HasIndex("UserId");
 
                     b.ToTable("RefreshTokens");
+                });
+
+            modelBuilder.Entity("Himma.Api.Domain.Entities.Supplement", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<double?>("Calories")
+                        .HasColumnType("REAL");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("DaysMask")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<double>("Dose")
+                        .HasColumnType("REAL");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(120)
+                        .HasColumnType("TEXT");
+
+                    b.Property<double?>("ProteinG")
+                        .HasColumnType("REAL");
+
+                    b.Property<string>("Times")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Unit")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Supplements");
+                });
+
+            modelBuilder.Entity("Himma.Api.Domain.Entities.SupplementIntake", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("MealEntryId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("SupplementId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("TakenAtUtc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MealEntryId");
+
+                    b.HasIndex("SupplementId", "Date");
+
+                    b.HasIndex("UserId", "Date");
+
+                    b.ToTable("SupplementIntakes");
                 });
 
             modelBuilder.Entity("Himma.Api.Domain.Entities.UserProfile", b =>
@@ -944,8 +1092,46 @@ namespace Himma.Api.Migrations.Sqlite
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Himma.Api.Domain.Entities.PushDevice", b =>
+                {
+                    b.HasOne("Himma.Api.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Himma.Api.Domain.Entities.RefreshToken", b =>
                 {
+                    b.HasOne("Himma.Api.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Himma.Api.Domain.Entities.Supplement", b =>
+                {
+                    b.HasOne("Himma.Api.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Himma.Api.Domain.Entities.SupplementIntake", b =>
+                {
+                    b.HasOne("Himma.Api.Domain.Entities.MealEntry", null)
+                        .WithMany()
+                        .HasForeignKey("MealEntryId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Himma.Api.Domain.Entities.Supplement", null)
+                        .WithMany()
+                        .HasForeignKey("SupplementId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("Himma.Api.Domain.Entities.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")

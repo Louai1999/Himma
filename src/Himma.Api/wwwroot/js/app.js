@@ -14,6 +14,8 @@ import * as session from './features/session.js';
 import * as weight from './features/weight.js';
 import * as historyScreen from './features/history.js';
 import * as profile from './features/profile.js';
+import * as supplements from './features/supplements.js';
+import { syncPush } from './push.js';
 
 const root = document.getElementById('app');
 document.title = t('هِمّة');
@@ -70,8 +72,9 @@ function showApp(auth) {
     nav,
     main);
 
-  startRouter({ mainEl: main, navEl: nav, tabs: TABS, hidden: { session: session.mount }, parentTabs: { session: 'workouts' } });
+  startRouter({ mainEl: main, navEl: nav, tabs: TABS, hidden: { session: session.mount, supplements: supplements.mount }, parentTabs: { session: 'workouts', supplements: 'today' } });
   startWaterReminder();
+  syncPush();
 }
 
 function registerServiceWorker() {

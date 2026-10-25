@@ -1,4 +1,9 @@
+using System.Collections.Concurrent;
+using Himma.Api.Domain.Entities;
+using Himma.Api.Infrastructure.Push;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Data.Sqlite;
 using Npgsql;
@@ -60,7 +65,19 @@ public sealed class HimmaApiFactory : WebApplicationFactory<Program>
         // All test requests come from the same (empty) IP, so lift the limits; one test checks them explicitly.
         builder.UseSetting("RateLimiting:Auth:PermitLimit", "100000");
         builder.UseSetting("RateLimiting:Api:PermitLimit", "100000");
+
+        // Reminders are run by the tests themselves (ReminderService.RunAsync), and push messages are only
+        // recorded, never sent to real push services.
+        builder.UseSetting("Reminders:Enabled", "false");
+        builder.ConfigureServices(services =>
+        {
+            services.RemoveAll<IPushSender>();
+            services.AddSingleton<IPushSender>(Push);
+        });
     }
+
+    /// <summary>Every push message the app tried to send.</summary>
+    public FakePushSender Push { get; } = new();
 
     protected override void Dispose(bool disposing)
     {
@@ -79,5 +96,25 @@ public sealed class HimmaApiFactory : WebApplicationFactory<Program>
             using var drop = new NpgsqlCommand($"DROP DATABASE IF EXISTS \"{_postgresDatabase}\" WITH (FORCE)", admin);
             drop.ExecuteNonQuery();
         }
+    }
+}
+
+/// <summary>Records push messages instead of sending them. Endpoints in <see cref="GoneEndpoints"/> answer "gone".</summary>
+public sealed class FakePushSender : IPushSender
+{
+    public ConcurrentQueue<(string Endpoint, PushPayload Payload)> Sent { get; } = new();
+    public ConcurrentDictionary<string, bool> GoneEndpoints { get; } = new();
+
+    public IReadOnlyList<PushPayload> To(string endpoint) =>
+        Sent.Where(s => s.Endpoint == endpoint).Select(s => s.Payload).ToList();
+
+    public Task<PushSendResult> SendAsync(PushDevice device, PushPayload payload, CancellationToken cancellationToken)
+    {
+        if (GoneEndpoints.ContainsKey(device.Endpoint))
+        {
+            return Task.FromResult(PushSendResult.Gone);
+        }
+        Sent.Enqueue((device.Endpoint, payload));
+        return Task.FromResult(PushSendResult.Sent);
     }
 }

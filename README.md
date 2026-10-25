@@ -129,6 +129,7 @@ HIMMA_ADMIN_PASSWORD=كلمة-مرور-المدير
 | `Admin__Password` | كلمة مرور قوية جديدة |
 | `ConnectionStrings__Postgres` **أو** `DATABASE_URL` | عنوان قاعدة PostgreSQL. يقبل الصيغتين: `Host=...;Database=...` أو `postgresql://user:pass@host:5432/db` |
 | `AllowedHosts` (اختياري، مُستحسن) | نطاق موقعك، مثل `himma.onrender.com` |
+| `Push__PublicKey` و`Push__PrivateKey` (اختياري) | مفاتيح التنبيهات (VAPID). اتركهما فارغين: التطبيق ينشئ زوج مفاتيح مرة واحدة ويحفظه في قاعدة البيانات |
 
 > الشرطتان `__` في الأسماء تعني `:` في الإعدادات (مثل `Jwt:Key`).
 

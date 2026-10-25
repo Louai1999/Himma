@@ -11,6 +11,7 @@ import { showSaved } from '../ui/toast.js';
 import { openModal } from '../ui/modal.js';
 import { downloadJson } from '../ui/download.js';
 import { startWaterReminder } from './water.js';
+import { pushControls, forgetPushDevice } from '../push.js';
 
 /** The profile with its targets, or null when the user has not filled it yet. */
 export async function fetchProfile() {
@@ -122,15 +123,6 @@ function reminderCard() {
     const enabled = h('input', { type: 'checkbox', id: 'reminder-enabled', checked: setting.enabled });
     const interval = selectOf({ 1: t('كل ساعة'), 2: t('كل ساعتين'), 3: t('كل 3 ساعات'), 4: t('كل 4 ساعات'), 6: t('كل 6 ساعات') }, String(setting.intervalHours));
     const status = h('div');
-    const permission = 'Notification' in window && Notification.permission === 'default'
-      ? h('button', {
-        type: 'button', class: 'btn btn-secondary btn-sm', onclick: async (event) => {
-          const button = event.currentTarget;
-          await Notification.requestPermission();
-          button.remove();
-        },
-      }, icon('bell', 16), t('السماح بإشعارات المتصفح'))
-      : null;
 
     async function save() {
       fill(status);
@@ -147,11 +139,11 @@ function reminderCard() {
 
     add(card,
       h('h2', { text: t('تذكير الماء') }),
-      h('p', { class: 'muted small', text: t('يظهر التذكير أثناء فتح التطبيق، ويمكنك السماح بإشعارات المتصفح أيضاً.') }),
+      h('p', { class: 'muted small', text: t('يصلك التذكير من الساعة 9 صباحاً إلى 9 مساءً، حتى والتطبيق مغلق إذا فعّلت التنبيهات.') }),
       h('label', { class: 'check', for: 'reminder-enabled' }, enabled, h('span', { text: t('فعّل التذكير') })),
       field(t('المدة'), interval),
-      permission,
-      status);
+      status,
+      pushControls());
   });
   return card;
 }
@@ -189,6 +181,7 @@ function accountCard() {
 
   const logout = h('button', {
     type: 'button', class: 'btn btn-ghost', onclick: async () => {
+      await forgetPushDevice();
       try { await post('/auth/logout'); } catch { /* signing out locally is enough */ }
       clearSession();
       emit('signed-out');

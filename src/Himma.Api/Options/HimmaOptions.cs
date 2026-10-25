@@ -68,3 +68,33 @@ public sealed class AccountDeletionOptions
     /// <summary>How often the background job looks for accounts whose grace period has ended.</summary>
     public int PurgeIntervalMinutes { get; set; } = 60;
 }
+
+/// <summary>
+/// Web Push (VAPID) keys. Leave both keys empty and the app creates a key pair once and keeps it in the
+/// database, so notifications work without any setup; set both to use your own pair instead.
+/// </summary>
+public sealed class PushOptions
+{
+    public const string SectionName = "Push";
+
+    public string? PublicKey { get; set; }
+    public string? PrivateKey { get; set; }
+
+    /// <summary>Contact for push services, as a mailto: or https: URL.</summary>
+    public string Subject { get; set; } = "https://github.com/Louai1999/Himma";
+}
+
+/// <summary>The background job that sends supplement and water reminders.</summary>
+public sealed class ReminderOptions
+{
+    public const string SectionName = "Reminders";
+
+    public bool Enabled { get; set; } = true;
+
+    /// <summary>A second reminder this long after a dose time, when the dose is still not logged.</summary>
+    public int MissedAfterMinutes { get; set; } = 60;
+
+    /// <summary>Water reminders start at this local hour and stop before WaterLastHour.</summary>
+    public int WaterFirstHour { get; set; } = 9;
+    public int WaterLastHour { get; set; } = 21;
+}

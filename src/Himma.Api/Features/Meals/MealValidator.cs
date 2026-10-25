@@ -14,7 +14,9 @@ public sealed class MealRequestValidator : AbstractValidator<MealRequest>
     {
         RuleFor(x => x.Date).MustBeApiDate();
         RuleFor(x => x.MealType).NotNull().WithMessage(_ => Lang.T("اختر نوع الوجبة.", "Choose the meal.")).IsInEnum();
-        RuleFor(x => x.Source).NotNull().WithMessage(_ => Lang.T("مصدر الوجبة مطلوب.", "Meal source is required.")).IsInEnum();
+        RuleFor(x => x.Source).NotNull().WithMessage(_ => Lang.T("مصدر الوجبة مطلوب.", "Meal source is required.")).IsInEnum()
+            // Supplement entries are only created by logging a supplement dose.
+            .NotEqual(MealSource.Supplement).WithMessage(_ => Lang.T("مصدر الوجبة غير صحيح.", "Invalid meal source."));
 
         When(x => x.Source == MealSource.Manual, () =>
         {

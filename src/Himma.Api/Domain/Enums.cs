@@ -12,7 +12,8 @@ public enum Goal { Lose, Maintain, Gain }
 
 public enum MealType { Breakfast, Lunch, Dinner, Snack }
 
-public enum MealSource { Manual, Custom, Ai }
+/// <summary>Supplement: added automatically when a supplement with protein or calories is logged as taken.</summary>
+public enum MealSource { Manual, Custom, Ai, Supplement }
 
 public enum MuscleGroup { Chest, Triceps, Back, Biceps, Legs, Shoulders, Abs, FullBody, Cardio }
 
@@ -24,3 +25,5 @@ public enum WorkoutPlace { Home, Gym }
 public enum DayKey { Sat, Sun, Mon, Tue, Wed, Thu, Fri }
 
 public enum CoachRole { User, Assistant }
+
+public enum SupplementUnit { Gram, Scoop, Capsule, Tablet, Ml }

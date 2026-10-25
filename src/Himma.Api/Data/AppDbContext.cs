@@ -26,6 +26,10 @@ public abstract class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<WeightEntry> WeightEntries => Set<WeightEntry>();
     public DbSet<WaterReminderSetting> WaterReminderSettings => Set<WaterReminderSetting>();
     public DbSet<BodyMeasurement> BodyMeasurements => Set<BodyMeasurement>();
+    public DbSet<Supplement> Supplements => Set<Supplement>();
+    public DbSet<SupplementIntake> SupplementIntakes => Set<SupplementIntake>();
+    public DbSet<PushDevice> PushDevices => Set<PushDevice>();
+    public DbSet<AppSetting> AppSettings => Set<AppSetting>();
     public DbSet<ExerciseDefinition> Exercises => Set<ExerciseDefinition>();
     public DbSet<WorkoutPlan> WorkoutPlans => Set<WorkoutPlan>();
     public DbSet<WorkoutPlanDay> WorkoutPlanDays => Set<WorkoutPlanDay>();
@@ -58,6 +62,7 @@ public abstract class AppDbContext : IdentityDbContext<ApplicationUser>
         configurationBuilder.Properties<WorkoutPlace>().HaveConversion<string>().HaveMaxLength(16);
         configurationBuilder.Properties<DayKey>().HaveConversion<string>().HaveMaxLength(8);
         configurationBuilder.Properties<CoachRole>().HaveConversion<string>().HaveMaxLength(16);
+        configurationBuilder.Properties<SupplementUnit>().HaveConversion<string>().HaveMaxLength(16);
     }
 
     private sealed class UtcDateTimeConverter() : ValueConverter<DateTime, DateTime>(

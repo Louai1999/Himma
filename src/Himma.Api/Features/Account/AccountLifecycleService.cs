@@ -78,6 +78,9 @@ public sealed class AccountLifecycleService(
         await db.WorkoutPlanItems.Where(i => db.WorkoutPlanDays.Any(d => d.Id == i.PlanDayId && d.Plan!.UserId == user.Id))
             .ExecuteDeleteAsync(cancellationToken);
         await db.WorkoutPlans.Where(p => p.UserId == user.Id).ExecuteDeleteAsync(cancellationToken);
+        // Intakes reference the user, a supplement and a meal; remove them before those cascades run.
+        await db.SupplementIntakes.Where(i => i.UserId == user.Id).ExecuteDeleteAsync(cancellationToken);
+        await db.Supplements.Where(s => s.UserId == user.Id).ExecuteDeleteAsync(cancellationToken);
 
         var result = await users.DeleteAsync(user);
         if (!result.Succeeded)

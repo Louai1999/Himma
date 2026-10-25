@@ -198,6 +198,55 @@ Content-Type: application/json
   "weightKg": 79.5
 }
 
+######################## Supplements and notifications ########################
+
+### My supplements
+GET {{baseUrl}}/api/supplements
+Authorization: Bearer {{token}}
+
+### Add a supplement (times = reminders, one dose each; days start on Saturday)
+POST {{baseUrl}}/api/supplements
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Creatine",
+  "dose": 5,
+  "unit": "gram",
+  "times": ["08:00"],
+  "days": ["sat", "sun", "mon", "tue", "wed", "thu", "fri"],
+  "proteinG": null,
+  "calories": null,
+  "notes": "with breakfast"
+}
+
+### Today's supplements: due doses, what was taken, streak
+GET {{baseUrl}}/api/supplements/day/{{today}}
+Authorization: Bearer {{token}}
+
+### Log a dose (409 when today's doses are already logged; send force=true for an extra one)
+POST {{baseUrl}}/api/supplements/1/intakes
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "date": "{{today}}",
+  "force": false
+}
+
+### Undo a dose
+DELETE {{baseUrl}}/api/supplements/intakes/1
+Authorization: Bearer {{token}}
+
+### Public key for push subscriptions
+GET {{baseUrl}}/api/push/key
+Authorization: Bearer {{token}}
+
+### Send a test notification to my devices
+POST {{baseUrl}}/api/push/test
+Authorization: Bearer {{token}}
+
+
 ######################## Body composition ########################
 
 ### Measurements, body fat / lean mass / FFMI per entry, and the goal projection
