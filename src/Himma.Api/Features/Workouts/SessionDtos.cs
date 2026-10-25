@@ -1,6 +1,7 @@
 using FluentValidation;
 using Himma.Api.Domain;
 using Himma.Api.Domain.Entities;
+using Himma.Api.Domain.Training;
 using Himma.Api.Infrastructure.Validation;
 using Himma.Api.Infrastructure.Localization;
 
@@ -27,11 +28,14 @@ public sealed class SetLogRequest
     public int? Reps { get; init; }
     public double? WeightKg { get; init; }
     public bool? Completed { get; init; }
+
+    /// <summary>Optional reps in reserve, 0 to 5 (5 means five or more).</summary>
+    public int? Rir { get; init; }
 }
 
-public sealed record SetLogDto(int ExerciseId, int SetNumber, int Reps, double? WeightKg, bool Completed)
+public sealed record SetLogDto(int ExerciseId, int SetNumber, int Reps, double? WeightKg, bool Completed, int? Rir)
 {
-    public static SetLogDto From(WorkoutSetLog l) => new(l.ExerciseId, l.SetNumber, l.Reps, l.WeightKg, l.Completed);
+    public static SetLogDto From(WorkoutSetLog l) => new(l.ExerciseId, l.SetNumber, l.Reps, l.WeightKg, l.Completed, l.Rir);
 }
 
 /// <summary>What the plan asks for, and what the user did last time, so they know which weight to pick.</summary>
@@ -42,7 +46,8 @@ public sealed record SessionExerciseDto(
     double? PlannedWeightKg,
     int? RestSeconds,
     string? Notes,
-    LastPerformanceDto? Last);
+    LastPerformanceDto? Last,
+    ProgressionHint? Hint);
 
 public sealed record SessionDto(
     int Id,
@@ -94,6 +99,8 @@ public sealed class SaveSetsRequestValidator : AbstractValidator<SaveSetsRequest
                 .InclusiveBetween(1, 100).WithMessage(_ => Lang.T("عدد التكرارات بين 1 و 100.", "Reps must be between 1 and 100."));
             set.RuleFor(x => x.WeightKg).InclusiveBetween(0, 500).When(x => x.WeightKg is not null)
                 .WithMessage(_ => Lang.T("الوزن بين 0 و 500 كغ.", "Weight must be between 0 and 500 kg."));
+            set.RuleFor(x => x.Rir).InclusiveBetween(0, 5).When(x => x.Rir is not null)
+                .WithMessage(_ => Lang.T("التكرارات المتبقية (RIR) بين 0 و 5.", "Reps in reserve (RIR) must be between 0 and 5."));
             set.RuleFor(x => x.Completed).NotNull().WithMessage(_ => Lang.T("حدد هل اكتملت الجولة.", "Choose whether the set is done."));
         });
     }

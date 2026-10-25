@@ -21,7 +21,7 @@ export function mount(view, [modeParam, planParam]) {
   const body = h('div', { class: 'stack' });
 
   add(view,
-    h('header', { class: 'view-head' }, h('h1', { text: t('التمارين') }), h('a', { class: 'btn btn-ghost btn-sm', href: '#records' }, '🏆 ', t('أرقامي القياسية'))),
+    h('header', { class: 'view-head' }, h('h1', { text: t('التمارين') }), h('div', { class: 'row' }, h('a', { class: 'btn btn-ghost btn-sm', href: '#volume' }, '📊 ', t('الحجم التدريبي')), h('a', { class: 'btn btn-ghost btn-sm', href: '#records' }, '🏆 ', t('أرقامي القياسية')))),
     h('div', { class: 'segmented', role: 'group', 'aria-label': t('عرض') },
       Object.entries(MODES).map(([key, label]) =>
         h('button', { type: 'button', 'aria-pressed': String(key === mode), onclick: () => navigate(`#workouts/${key}`) }, label))),

@@ -928,6 +928,9 @@ namespace Himma.Api.Migrations.Sqlite
                     b.Property<int>("Reps")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int?>("Rir")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("SessionId")
                         .HasColumnType("INTEGER");
 

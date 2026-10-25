@@ -62,19 +62,35 @@ public sealed class WorkoutTests(HimmaApiFactory factory) : IClassFixture<HimmaA
     }
 
     [Fact]
-    public async Task Both_templates_are_listed_with_resolved_exercises()
+    public async Task All_templates_are_listed_with_resolved_exercises()
     {
         var user = await factory.SignUpAsync();
 
         var templates = await user.Client.GetFromJsonAsync<List<TemplateDto>>("/api/plans/templates", TestJson.Options);
 
-        Assert.Equal(2, templates!.Count);
+        Assert.Equal(5, templates!.Count);
+        Assert.Equal(6, templates.Single(t => t.Key == WorkoutTemplates.PushPullLegs6).Days.Count(d => !d.IsRest));
+        Assert.Equal(4, templates.Single(t => t.Key == WorkoutTemplates.UpperLower4).Days.Count(d => !d.IsRest));
+        Assert.Equal(5, templates.Single(t => t.Key == WorkoutTemplates.BroSplit5).Days.Count(d => !d.IsRest));
+        // Every template exercise exists in the seeded library (an unknown name would leave a day short).
+        Assert.All(templates.SelectMany(t => t.Days).Where(d => !d.IsRest), d => Assert.True(d.Items.Count >= 4));
         var gym = templates.Single(t => t.Key == WorkoutTemplates.GymSplit4);
         Assert.Equal(7, gym.Days.Count);
         Assert.Equal(4, gym.Days.Count(d => !d.IsRest));
         Assert.Equal([MuscleGroup.Chest, MuscleGroup.Triceps], gym.Days.Single(d => d.DayKey == DayKey.Sat).Focus);
         Assert.All(gym.Days.Where(d => !d.IsRest), d => Assert.Equal(5, d.Items.Count));
         Assert.Equal(3, templates.Single(t => t.Key == WorkoutTemplates.HomeBeginner3).Days.Count(d => !d.IsRest));
+    }
+
+    [Fact]
+    public void Every_template_exercise_exists_in_the_seeded_library()
+    {
+        var seeded = Himma.Api.Data.Seed.ExerciseSeedData.All.Select(e => e.Name).ToHashSet();
+
+        var missing = WorkoutTemplates.All.SelectMany(t => t.Days).SelectMany(d => d.Items)
+            .Select(i => i.ExerciseName).Where(name => !seeded.Contains(name)).Distinct().ToList();
+
+        Assert.Empty(missing);
     }
 
     // ---------- Plans ----------

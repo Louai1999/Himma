@@ -1,5 +1,7 @@
 using Himma.Api.Data;
+using Himma.Api.Domain;
 using Himma.Api.Domain.Entities;
+using Himma.Api.Domain.Training;
 using Himma.Api.Infrastructure.Http;
 using Himma.Api.Infrastructure.Validation;
 using Microsoft.AspNetCore.Mvc;
@@ -10,7 +12,7 @@ namespace Himma.Api.Features.Workouts;
 
 /// <summary>Workout sessions: start from a plan day, tick sets, complete, browse history.</summary>
 [Route("api/workouts")]
-public sealed class WorkoutsController(AppDbContext db, LastPerformanceQuery lastPerformance) : HimmaControllerBase
+public sealed class WorkoutsController(AppDbContext db, LastPerformanceQuery lastPerformance, TrainingQueries training) : HimmaControllerBase
 {
     /// <summary>
     /// Starts a session. If an unfinished session for the same date and plan day already exists,
@@ -93,6 +95,7 @@ public sealed class WorkoutsController(AppDbContext db, LastPerformanceQuery las
             Reps = s.Reps!.Value,
             WeightKg = s.WeightKg,
             Completed = s.Completed!.Value,
+            Rir = s.Rir,
         }));
         await db.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
@@ -159,6 +162,28 @@ public sealed class WorkoutsController(AppDbContext db, LastPerformanceQuery las
             s.ExerciseCount, s.CompletedSets, Math.Round(s.Volume, 1))).ToList();
     }
 
+    /// <summary>Completed sets per muscle for the last <paramref name="weeks"/> weeks (Saturday to Friday).</summary>
+    [HttpGet("volume")]
+    public async Task<ActionResult<VolumeResponse>> Volume(
+        [FromQuery] int weeks = 4,
+        [FromQuery] string? today = null,
+        CancellationToken cancellationToken = default)
+    {
+        if (weeks is < 1 or > 12)
+        {
+            return InvalidField("weeks", Lang.T("عدد الأسابيع بين 1 و 12.", "Weeks must be between 1 and 12."));
+        }
+
+        var todayDate = ApiDate.UtcToday;
+        if (today is not null && (!ApiDate.TryParse(today, out todayDate) || !ApiDate.IsPlausibleToday(todayDate)))
+        {
+            return InvalidField("today", Lang.T("تاريخ اليوم غير صحيح.", "Today's date is not valid."));
+        }
+
+        var result = await training.WeeklyVolumeAsync(UserId, todayDate, weeks, cancellationToken);
+        return new VolumeResponse(WeeklyVolume.TargetMinSets, WeeklyVolume.TargetMaxSets, result);
+    }
+
     private Task<WorkoutSession?> FindOwnedAsync(int id, bool tracking, CancellationToken cancellationToken)
     {
         var userId = UserId;
@@ -183,10 +208,15 @@ public sealed class WorkoutsController(AppDbContext db, LastPerformanceQuery las
         var planned = day?.Items.OrderBy(i => i.Order).ToList() ?? [];
         var exerciseIds = planned.Select(i => i.ExerciseId).Concat(sets.Select(s => s.ExerciseId)).Distinct().ToList();
         var last = await lastPerformance.GetAsync(session.UserId, exerciseIds, session.Id, cancellationToken);
+        var recent = await training.RecentSessionsAsync(
+            session.UserId, exerciseIds, session.Id, session.Date, session.StartedAtUtc, cancellationToken);
+        ProgressionHint? Hint(int exerciseId, MuscleGroup muscle, int sets, int reps) =>
+            recent.TryGetValue(exerciseId, out var history) ? Progression.Advise(muscle, sets, reps, history) : null;
 
         var exercises = planned.Select(i => new SessionExerciseDto(
             ExerciseDto.From(i.Exercise!), i.Sets, i.Reps, i.WeightKg, i.RestSeconds, i.Notes,
-            last.GetValueOrDefault(i.ExerciseId))).ToList();
+            last.GetValueOrDefault(i.ExerciseId),
+            Hint(i.ExerciseId, i.Exercise!.MuscleGroup, i.Sets, i.Reps))).ToList();
 
         // Exercises logged outside the plan (free workouts, or one added during the session) are listed too.
         var plannedIds = planned.Select(i => i.ExerciseId).ToHashSet();
@@ -199,9 +229,11 @@ public sealed class WorkoutsController(AppDbContext db, LastPerformanceQuery las
             exercises.AddRange(extraIds.Where(extras.ContainsKey).Select(id =>
             {
                 var logged = sets.Where(s => s.ExerciseId == id).ToList();
+                var exercise = extras[id];
                 return new SessionExerciseDto(
-                    ExerciseDto.From(extras[id]), logged.Count, logged.Max(s => s.Reps), null, null, null,
-                    last.GetValueOrDefault(id));
+                    ExerciseDto.From(exercise), logged.Count, logged.Max(s => s.Reps), null, null, null,
+                    last.GetValueOrDefault(id),
+                    Hint(id, exercise.MuscleGroup, exercise.DefaultSets, exercise.DefaultReps));
             }));
         }
 

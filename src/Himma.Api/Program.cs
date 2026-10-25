@@ -45,6 +45,7 @@ builder.Services.AddScoped<HistoryService>();
 builder.Services.AddScoped<LastPerformanceQuery>();
 builder.Services.AddScoped<PlanService>();
 builder.Services.AddScoped<RecordsService>();
+builder.Services.AddScoped<TrainingQueries>();
 
 builder.Services.AddOptions<AccountDeletionOptions>().Bind(builder.Configuration.GetSection(AccountDeletionOptions.SectionName));
 builder.Services.AddHttpContextAccessor();

@@ -971,6 +971,9 @@ namespace Himma.Api.Migrations.Postgres
                     b.Property<int>("Reps")
                         .HasColumnType("integer");
 
+                    b.Property<int?>("Rir")
+                        .HasColumnType("integer");
+
                     b.Property<int>("SessionId")
                         .HasColumnType("integer");
 

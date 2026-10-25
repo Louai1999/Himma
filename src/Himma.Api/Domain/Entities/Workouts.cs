@@ -90,4 +90,7 @@ public class WorkoutSetLog
     public int Reps { get; set; }
     public double? WeightKg { get; set; }
     public bool Completed { get; set; }
+
+    /// <summary>Reps in reserve: how many more reps were possible (0 = to failure). RPE = 10 - RIR.</summary>
+    public int? Rir { get; set; }
 }

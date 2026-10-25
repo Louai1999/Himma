@@ -77,17 +77,23 @@ function render(container, session, timer) {
       const reps = numberInput(set.reps, { min: 1, max: 100, step: 1 });
       const weight = numberInput(set.weightKg, { min: 0, max: 500, step: 0.5 });
       const done = h('input', { type: 'checkbox', checked: set.completed, 'aria-label': t('{name}: الجولة {n} تمت', { name: exercise.name, n: index + 1 }) });
+      // Reps in reserve (RPE = 10 - RIR): optional, helps the "go heavier" hint.
+      const rir = h('select', { 'aria-label': t('{name}: التكرارات المتبقية في الجولة {n}', { name: exercise.name, n: index + 1 }) },
+        h('option', { value: '', text: '—', selected: set.rir == null }),
+        [0, 1, 2, 3, 4, 5].map((n) => h('option', { value: String(n), text: n === 5 ? '5+' : String(n), selected: set.rir === n })));
       reps.setAttribute('aria-label', t('{name}: تكرارات الجولة {n}', { name: exercise.name, n: index + 1 }));
       weight.setAttribute('aria-label', t('{name}: وزن الجولة {n} بالكيلو', { name: exercise.name, n: index + 1 }));
-      [reps, weight, done].forEach((el) => { el.disabled = locked; });
+      [reps, weight, rir, done].forEach((el) => { el.disabled = locked; });
       const tr = h('tr', { class: set.completed ? 'done' : '' },
         h('td', {}, h('span', { class: 'num', text: String(index + 1) })),
         h('td', {}, reps),
         h('td', {}, weight),
+        h('td', {}, rir),
         h('td', {}, done));
 
       reps.addEventListener('input', () => { set.reps = readNumber(reps); if (set.completed) saveSoon(); });
       weight.addEventListener('input', () => { set.weightKg = readNumber(weight); if (set.completed) saveSoon(); });
+      rir.addEventListener('change', () => { set.rir = rir.value === '' ? null : Number(rir.value); if (set.completed) saveSoon(); });
       done.addEventListener('change', () => {
         set.completed = done.checked;
         tr.className = set.completed ? 'done' : '';
@@ -106,8 +112,10 @@ function render(container, session, timer) {
           h('h2', { text: exercise.name }),
           h('p', { class: 'muted small', text: `${exerciseTarget(exercise)} · ${t('المطلوب {sets} × {reps}', { sets: entry.plannedSets, reps: entry.plannedReps })} · ${t('راحة {s} ث', { s: entry.restSeconds ?? DEFAULT_REST_SECONDS })}` }),
           entry.last && h('p', { class: 'small' }, t('آخر مرة: '), h('span', { class: 'num', text: t('{kg} كغ × {reps}', { kg: fmt(entry.last.weightKg ?? 0), reps: entry.last.reps }) })))),
+      !locked && entry.hint && hintNotice(entry, renderRows),
       h('table', { class: 'set-table' },
-        h('thead', {}, h('tr', {}, h('th', { text: t('الجولة') }), h('th', { text: t('التكرار') }), h('th', { text: t('الوزن (كغ)') }), h('th', { text: t('تمت') }))),
+        h('thead', {}, h('tr', {}, h('th', { text: t('الجولة') }), h('th', { text: t('التكرار') }), h('th', { text: t('الوزن (كغ)') }),
+          h('th', { title: t('التكرارات المتبقية: كم تكرار كنت تقدر تزيد. RPE = 10 - RIR'), text: 'RIR' }), h('th', { text: t('تمت') }))),
         rows),
       !locked && h('button', {
         type: 'button', class: 'btn btn-ghost btn-sm', onclick: () => {
@@ -121,7 +129,7 @@ function render(container, session, timer) {
   /** Sends every ticked set. Unticked rows are only on screen until they are ticked. */
   async function save() {
     const sets = exercises.flatMap((entry) => entry.sets
-      .map((set, i) => ({ exerciseId: entry.exercise.id, setNumber: i + 1, reps: set.reps, weightKg: set.weightKg, completed: true, ticked: set.completed }))
+      .map((set, i) => ({ exerciseId: entry.exercise.id, setNumber: i + 1, reps: set.reps, weightKg: set.weightKg, rir: set.rir ?? null, completed: true, ticked: set.completed }))
       .filter((set) => set.ticked && set.reps >= 1)
       .map(({ ticked, ...set }) => set));
     fill(status);
@@ -158,10 +166,43 @@ function buildExercise(planned, loggedSets) {
   const sets = Array.from({ length: count }, (_, i) => {
     const log = logged.find((s) => s.setNumber === i + 1);
     return log
-      ? { reps: log.reps, weightKg: log.weightKg, completed: log.completed }
-      : { reps: planned.plannedReps, weightKg: defaultWeight, completed: false };
+      ? { reps: log.reps, weightKg: log.weightKg, rir: log.rir ?? null, completed: log.completed }
+      : { reps: planned.plannedReps, weightKg: defaultWeight, rir: null, completed: false };
   });
-  return { exercise: planned.exercise, plannedSets: planned.plannedSets, plannedReps: planned.plannedReps, restSeconds: planned.restSeconds ?? null, last: planned.last, sets };
+  return { exercise: planned.exercise, plannedSets: planned.plannedSets, plannedReps: planned.plannedReps, restSeconds: planned.restSeconds ?? null, last: planned.last, hint: planned.hint ?? null, sets };
+}
+
+/**
+ * Progressive overload hint from the server: go heavier (with a button that fills the weight into the
+ * sets not done yet), add reps, or stay at this weight.
+ */
+function hintNotice(entry, renderRows) {
+  const { hint } = entry;
+  const why = {
+    twoSessionsHit: t('كمّلت كل الجولات بالتكرارات المطلوبة مرتين متتاليتين.'),
+    easyLastTime: t('آخر مرة كانت سهلة (3 تكرارات أو أكثر متبقية).'),
+    missedReps: t('آخر مرة نقصت التكرارات، ثبّت الوزن لين تكمّلها.'),
+  }[hint.reason] ?? '';
+  const text = {
+    increase: t('💪 جاهز تزيد: جرّب {kg} كغ', { kg: fmt(hint.weightKg) }),
+    addReps: t('💪 جاهز تزيد: جرّب {reps} تكرار', { reps: hint.reps }),
+    keep: t('حافظ على {kg} كغ هالمرة', { kg: fmt(hint.weightKg) }),
+  }[hint.kind];
+  if (!text) return null;
+
+  const apply = hint.kind !== 'keep' && h('button', {
+    type: 'button', class: 'btn btn-sm btn-secondary', onclick: () => {
+      entry.sets.filter((set) => !set.completed).forEach((set) => {
+        if (hint.kind === 'increase') set.weightKg = hint.weightKg;
+        else set.reps = hint.reps;
+      });
+      renderRows();
+      showSaved(t('تم التطبيق على الجولات الباقية'));
+    },
+  }, t('طبّق'));
+  return h('div', { class: hint.kind === 'keep' ? 'notice' : 'notice info', role: 'status' },
+    h('div', { class: 'grow' }, h('strong', { text }), h('div', { class: 'small', text: why })),
+    apply);
 }
 
 /** "New personal record!" after finishing a workout that beat earlier sessions. Closing goes to the history. */

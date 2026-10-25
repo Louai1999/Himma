@@ -66,7 +66,7 @@ public sealed class UserDataExporter(AppDbContext db)
                 s.StartedAtUtc,
                 s.CompletedAtUtc,
                 Sets = s.SetLogs.OrderBy(l => l.ExerciseId).ThenBy(l => l.SetNumber)
-                    .Select(l => new { l.ExerciseId, l.SetNumber, l.Reps, l.WeightKg, l.Completed }),
+                    .Select(l => new { l.ExerciseId, l.SetNumber, l.Reps, l.WeightKg, l.Completed, l.Rir }),
             })
             .ToListAsync(cancellationToken);
 

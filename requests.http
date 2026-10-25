@@ -231,6 +231,11 @@ GET {{baseUrl}}/api/workouts/sessions/1/records
 Authorization: Bearer {{token}}
 
 
+### Completed sets per muscle for the last 4 weeks (weeks start on Saturday)
+GET {{baseUrl}}/api/workouts/volume?weeks=4&today={{today}}
+Authorization: Bearer {{token}}
+
+
 ######################## Supplements and notifications ########################
 
 ### My supplements
