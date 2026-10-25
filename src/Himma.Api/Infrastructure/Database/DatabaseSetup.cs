@@ -55,20 +55,41 @@ public static class DatabaseSetup
             return connectionString;
         }
 
-        var uri = new Uri(connectionString);
-        var credentials = uri.UserInfo.Split(':', 2);
+        // Parsed by hand instead of with System.Uri: a password pasted without URL encoding may contain
+        // '/', '?', '#', '@' or ':', which System.Uri rejects. The host part is after the LAST '@'.
+        var rest = connectionString[(connectionString.IndexOf("://", StringComparison.Ordinal) + 3)..];
+        var at = rest.LastIndexOf('@');
+        var userInfo = at >= 0 ? rest[..at] : "";
+        var location = at >= 0 ? rest[(at + 1)..] : rest;
+
+        var queryStart = location.IndexOf('?');
+        var query = queryStart >= 0 ? location[(queryStart + 1)..] : "";
+        var hostAndPath = queryStart >= 0 ? location[..queryStart] : location;
+        var slash = hostAndPath.IndexOf('/');
+        var hostAndPort = slash >= 0 ? hostAndPath[..slash] : hostAndPath;
+        var database = slash >= 0 ? hostAndPath[(slash + 1)..] : "";
+        var colon = hostAndPort.LastIndexOf(':');
+
+        var port = 5432;
+        if (colon >= 0 && !int.TryParse(hostAndPort[(colon + 1)..], out port))
+        {
+            // The message never echoes the URL, which contains the password.
+            throw new InvalidOperationException("The database URL has an invalid port. Expected postgresql://user:password@host:port/database");
+        }
+
+        var credentials = userInfo.Split(':', 2);
         var builder = new NpgsqlConnectionStringBuilder
         {
-            Host = uri.Host,
-            Port = uri.IsDefaultPort || uri.Port <= 0 ? 5432 : uri.Port,
-            Database = Uri.UnescapeDataString(uri.AbsolutePath.TrimStart('/')),
+            Host = colon >= 0 ? hostAndPort[..colon] : hostAndPort,
+            Port = port,
+            Database = Uri.UnescapeDataString(database),
             Username = Uri.UnescapeDataString(credentials[0]),
             Password = credentials.Length > 1 ? Uri.UnescapeDataString(credentials[1]) : null,
             SslMode = SslMode.Prefer,
         };
 
         // Keep options such as ?sslmode=require from the URL.
-        foreach (var pair in uri.Query.TrimStart('?').Split('&', StringSplitOptions.RemoveEmptyEntries))
+        foreach (var pair in query.Split('&', StringSplitOptions.RemoveEmptyEntries))
         {
             var parts = pair.Split('=', 2);
             if (parts.Length == 2 && parts[0].Equals("sslmode", StringComparison.OrdinalIgnoreCase)

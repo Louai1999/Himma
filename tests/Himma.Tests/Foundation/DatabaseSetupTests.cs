@@ -28,6 +28,32 @@ public sealed class DatabaseSetupTests
         Assert.Equal("himma", result.Database);
     }
 
+    [Theory]
+    [InlineData("pa/ss#wo?rd")]
+    [InlineData("p@ss:w0rd!")]
+    [InlineData("[brackets]")]
+    public void Passwords_pasted_without_url_encoding_are_kept(string password)
+    {
+        var result = new NpgsqlConnectionStringBuilder(DatabaseSetup.NormalizePostgres(
+            $"postgresql://postgres.abcdef:{password}@aws-1-eu-central-1.pooler.supabase.com:5432/postgres?sslmode=require"));
+
+        Assert.Equal("aws-1-eu-central-1.pooler.supabase.com", result.Host);
+        Assert.Equal(5432, result.Port);
+        Assert.Equal("postgres", result.Database);
+        Assert.Equal("postgres.abcdef", result.Username);
+        Assert.Equal(password, result.Password);
+        Assert.Equal(SslMode.Require, result.SslMode);
+    }
+
+    [Fact]
+    public void Invalid_port_error_does_not_reveal_the_password()
+    {
+        var error = Assert.Throws<InvalidOperationException>(() =>
+            DatabaseSetup.NormalizePostgres("postgresql://u:secret-value@host:abc/db"));
+
+        Assert.DoesNotContain("secret-value", error.Message);
+    }
+
     [Fact]
     public void Npgsql_connection_strings_are_left_as_they_are()
     {
