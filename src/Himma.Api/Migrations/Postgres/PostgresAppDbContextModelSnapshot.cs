@@ -575,6 +575,35 @@ namespace Himma.Api.Migrations.Postgres
                     b.ToTable("RefreshTokens");
                 });
 
+            modelBuilder.Entity("Himma.Api.Domain.Entities.StepEntry", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<int>("Steps")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "Date")
+                        .IsUnique();
+
+                    b.ToTable("StepEntries");
+                });
+
             modelBuilder.Entity("Himma.Api.Domain.Entities.Supplement", b =>
                 {
                     b.Property<int>("Id")
@@ -1147,6 +1176,15 @@ namespace Himma.Api.Migrations.Postgres
                 });
 
             modelBuilder.Entity("Himma.Api.Domain.Entities.RefreshToken", b =>
+                {
+                    b.HasOne("Himma.Api.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Himma.Api.Domain.Entities.StepEntry", b =>
                 {
                     b.HasOne("Himma.Api.Domain.Entities.ApplicationUser", null)
                         .WithMany()

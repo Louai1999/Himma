@@ -26,6 +26,7 @@ public abstract class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<WeightEntry> WeightEntries => Set<WeightEntry>();
     public DbSet<WaterReminderSetting> WaterReminderSettings => Set<WaterReminderSetting>();
     public DbSet<BodyMeasurement> BodyMeasurements => Set<BodyMeasurement>();
+    public DbSet<StepEntry> StepEntries => Set<StepEntry>();
     public DbSet<Supplement> Supplements => Set<Supplement>();
     public DbSet<SupplementIntake> SupplementIntakes => Set<SupplementIntake>();
     public DbSet<PushDevice> PushDevices => Set<PushDevice>();

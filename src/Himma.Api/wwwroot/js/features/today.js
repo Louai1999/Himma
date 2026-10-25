@@ -12,6 +12,7 @@ import { openAddMeal } from './meals.js';
 import { fetchProfile } from './profile.js';
 import { startAndOpenSession } from './session.js';
 import { todaySupplementsCard } from './supplements.js';
+import { walkingCard } from './walking.js';
 
 const QUICK_WATER = [250, 500, 750];
 
@@ -31,7 +32,7 @@ export function mount(view) {
 
   add(view,
     h('header', { class: 'view-head' }, h('h1', { text: t('اليوم') }), h('p', { class: 'muted', text: formatLong(date) })),
-    tipBox, ringsCard, mealsCard, todaySupplementsCard(), waterCard, workoutCard);
+    tipBox, ringsCard, mealsCard, todaySupplementsCard(), waterCard, walkingCard(), workoutCard);
 
   load();
   loadTip();

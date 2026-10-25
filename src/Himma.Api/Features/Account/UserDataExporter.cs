@@ -96,6 +96,9 @@ public sealed class UserDataExporter(AppDbContext db)
             NotificationDevices = await db.PushDevices.AsNoTracking().Where(d => d.UserId == userId)
                 .Select(d => new { d.TimeZone, d.Language, d.CreatedAtUtc })
                 .ToListAsync(cancellationToken),
+            Steps = await db.StepEntries.AsNoTracking().Where(s => s.UserId == userId).OrderBy(s => s.Date)
+                .Select(s => new { s.Date, s.Steps })
+                .ToListAsync(cancellationToken),
             BodyMeasurements = await db.BodyMeasurements.AsNoTracking().Where(m => m.UserId == userId).OrderBy(m => m.Date)
                 .Select(m => new { m.Date, m.NeckCm, m.WaistCm, m.HipCm, m.ChestCm, m.ArmCm, m.ThighCm, m.BodyFatPercent, m.MuscleMassKg })
                 .ToListAsync(cancellationToken),

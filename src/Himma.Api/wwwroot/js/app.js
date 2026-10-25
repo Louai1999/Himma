@@ -15,6 +15,7 @@ import * as weight from './features/weight.js';
 import * as historyScreen from './features/history.js';
 import * as profile from './features/profile.js';
 import * as supplements from './features/supplements.js';
+import * as records from './features/records.js';
 import { syncPush } from './push.js';
 
 const root = document.getElementById('app');
@@ -72,7 +73,7 @@ function showApp(auth) {
     nav,
     main);
 
-  startRouter({ mainEl: main, navEl: nav, tabs: TABS, hidden: { session: session.mount, supplements: supplements.mount }, parentTabs: { session: 'workouts', supplements: 'today' } });
+  startRouter({ mainEl: main, navEl: nav, tabs: TABS, hidden: { session: session.mount, supplements: supplements.mount, records: records.mount }, parentTabs: { session: 'workouts', supplements: 'today', records: 'workouts' } });
   startWaterReminder();
   syncPush();
 }

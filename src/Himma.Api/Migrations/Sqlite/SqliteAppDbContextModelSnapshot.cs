@@ -552,6 +552,33 @@ namespace Himma.Api.Migrations.Sqlite
                     b.ToTable("RefreshTokens");
                 });
 
+            modelBuilder.Entity("Himma.Api.Domain.Entities.StepEntry", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Steps")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "Date")
+                        .IsUnique();
+
+                    b.ToTable("StepEntries");
+                });
+
             modelBuilder.Entity("Himma.Api.Domain.Entities.Supplement", b =>
                 {
                     b.Property<int>("Id")
@@ -1102,6 +1129,15 @@ namespace Himma.Api.Migrations.Sqlite
                 });
 
             modelBuilder.Entity("Himma.Api.Domain.Entities.RefreshToken", b =>
+                {
+                    b.HasOne("Himma.Api.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Himma.Api.Domain.Entities.StepEntry", b =>
                 {
                     b.HasOne("Himma.Api.Domain.Entities.ApplicationUser", null)
                         .WithMany()

@@ -10,6 +10,10 @@ import { calmNotice, loadInto } from '../ui/notice.js';
 import { showSaved } from '../ui/toast.js';
 import { navigate } from '../router.js';
 import { openLibrary } from './library.js';
+import { restTimer } from '../ui/restTimer.js';
+import { openModal } from '../ui/modal.js';
+
+const DEFAULT_REST_SECONDS = 90;
 
 /** Starts (or reopens) the session for a plan day and shows it. */
 export async function startAndOpenSession(date, planDayId) {
@@ -23,11 +27,13 @@ export async function startAndOpenSession(date, planDayId) {
  */
 export function mount(view, [id]) {
   const container = h('div', { class: 'stack' });
-  add(view, container);
-  loadInto(container, () => get(`/workouts/sessions/${encodeURIComponent(id)}`), (session) => render(container, session));
+  const timer = restTimer();
+  add(view, container, timer.element);
+  loadInto(container, () => get(`/workouts/sessions/${encodeURIComponent(id)}`), (session) => render(container, session, timer));
+  return () => timer.stop();
 }
 
-function render(container, session) {
+function render(container, session, timer) {
   const locked = Boolean(session.completedAtUtc);
   const status = h('div');
   const exercises = session.exercises.map((e) => buildExercise(e, session.sets));
@@ -86,6 +92,8 @@ function render(container, session) {
         set.completed = done.checked;
         tr.className = set.completed ? 'done' : '';
         saveSoon();
+        // A finished set starts the rest before the next one.
+        if (set.completed) timer.start(entry.restSeconds ?? DEFAULT_REST_SECONDS);
       });
       return tr;
     }
@@ -96,7 +104,7 @@ function render(container, session) {
         muscleFigure(exercise),
         h('div', {},
           h('h2', { text: exercise.name }),
-          h('p', { class: 'muted small', text: `${exerciseTarget(exercise)} · ${t('المطلوب {sets} × {reps}', { sets: entry.plannedSets, reps: entry.plannedReps })}` }),
+          h('p', { class: 'muted small', text: `${exerciseTarget(exercise)} · ${t('المطلوب {sets} × {reps}', { sets: entry.plannedSets, reps: entry.plannedReps })} · ${t('راحة {s} ث', { s: entry.restSeconds ?? DEFAULT_REST_SECONDS })}` }),
           entry.last && h('p', { class: 'small' }, t('آخر مرة: '), h('span', { class: 'num', text: t('{kg} كغ × {reps}', { kg: fmt(entry.last.weightKg ?? 0), reps: entry.last.reps }) })))),
       h('table', { class: 'set-table' },
         h('thead', {}, h('tr', {}, h('th', { text: t('الجولة') }), h('th', { text: t('التكرار') }), h('th', { text: t('الوزن (كغ)') }), h('th', { text: t('تمت') }))),
@@ -131,8 +139,11 @@ function render(container, session) {
     if (!(await save())) return;
     try {
       await post(`/workouts/sessions/${session.id}/complete`);
+      timer.stop();
       showSaved(t('أحسنت! تم حفظ التمرين'));
-      navigate('#workouts/history');
+      const records = await get(`/workouts/sessions/${session.id}/records`).catch(() => []);
+      if (records.length > 0) showRecords(records);
+      else navigate('#workouts/history');
     } catch (error) {
       if (error.status !== 401) fill(status, calmNotice(error, finish));
     }
@@ -150,5 +161,22 @@ function buildExercise(planned, loggedSets) {
       ? { reps: log.reps, weightKg: log.weightKg, completed: log.completed }
       : { reps: planned.plannedReps, weightKg: defaultWeight, completed: false };
   });
-  return { exercise: planned.exercise, plannedSets: planned.plannedSets, plannedReps: planned.plannedReps, last: planned.last, sets };
+  return { exercise: planned.exercise, plannedSets: planned.plannedSets, plannedReps: planned.plannedReps, restSeconds: planned.restSeconds ?? null, last: planned.last, sets };
+}
+
+/** "New personal record!" after finishing a workout that beat earlier sessions. Closing goes to the history. */
+function showRecords(records) {
+  let next = '#workouts/history';
+  const modal = openModal({
+    title: t('🏆 أرقام قياسية جديدة!'),
+    content: h('div', { class: 'stack' },
+      h('ul', { class: 'item-list' }, records.map((r) => h('li', { class: 'item' },
+        h('div', { class: 'grow' },
+          h('div', { class: 'title', text: r.exerciseName }),
+          h('div', { class: 'muted small', text: r.kind === 'weight'
+            ? t('أثقل وزن: {kg} كغ (قبل: {prev} كغ)', { kg: fmt(r.valueKg), prev: fmt(r.previousKg) })
+            : t('1RM تقديري: {kg} كغ (قبل: {prev} كغ) من {w} كغ × {reps}', { kg: fmt(r.valueKg), prev: fmt(r.previousKg), w: fmt(r.weightKg), reps: r.reps }) }))))),
+      h('button', { type: 'button', class: 'btn btn-secondary', text: t('كل أرقامي القياسية'), onclick: () => { next = '#records'; modal.close(); } })),
+    onClose: () => navigate(next),
+  });
 }

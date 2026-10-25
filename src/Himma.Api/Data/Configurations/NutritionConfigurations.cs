@@ -72,6 +72,15 @@ public sealed class WaterReminderSettingConfiguration : IEntityTypeConfiguration
     }
 }
 
+public sealed class StepEntryConfiguration : IEntityTypeConfiguration<StepEntry>
+{
+    public void Configure(EntityTypeBuilder<StepEntry> b)
+    {
+        b.HasIndex(x => new { x.UserId, x.Date }).IsUnique();
+        b.HasOne<ApplicationUser>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
+    }
+}
+
 public sealed class BodyMeasurementConfiguration : IEntityTypeConfiguration<BodyMeasurement>
 {
     public void Configure(EntityTypeBuilder<BodyMeasurement> b)

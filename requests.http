@@ -198,6 +198,39 @@ Content-Type: application/json
   "weightKg": 79.5
 }
 
+######################## Steps, 1RM and records ########################
+
+### Steps of the last 30 days with distance and calories
+GET {{baseUrl}}/api/steps?today={{today}}
+Authorization: Bearer {{token}}
+
+### Save today's steps (same date again replaces them)
+POST {{baseUrl}}/api/steps
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "date": "{{today}}",
+  "steps": 9500
+}
+
+### How far to walk to burn 300 kcal
+GET {{baseUrl}}/api/steps/plan?calories=300
+Authorization: Bearer {{token}}
+
+### Estimated one-rep max and load chart
+GET {{baseUrl}}/api/strength/one-rep-max?weightKg=100&reps=5
+Authorization: Bearer {{token}}
+
+### Personal records per exercise
+GET {{baseUrl}}/api/workouts/records
+Authorization: Bearer {{token}}
+
+### Records beaten in one session
+GET {{baseUrl}}/api/workouts/sessions/1/records
+Authorization: Bearer {{token}}
+
+
 ######################## Supplements and notifications ########################
 
 ### My supplements

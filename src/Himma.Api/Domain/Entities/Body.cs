@@ -25,3 +25,13 @@ public class BodyMeasurement
 
     public DateTime CreatedAtUtc { get; set; }
 }
+
+/// <summary>Steps walked on one date, typed from a phone or watch. One entry per date.</summary>
+public class StepEntry
+{
+    public int Id { get; set; }
+    public string UserId { get; set; } = string.Empty;
+    public DateOnly Date { get; set; }
+    public int Steps { get; set; }
+    public DateTime CreatedAtUtc { get; set; }
+}
