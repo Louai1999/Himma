@@ -1,4 +1,5 @@
 using Himma.Api.Infrastructure.Auth;
+using Himma.Api.Infrastructure.Email;
 using Himma.Api.Infrastructure.RateLimiting;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -10,8 +11,28 @@ namespace Himma.Api.Features.Auth;
 [ApiController]
 [Route("api/auth")]
 [EnableRateLimiting(RateLimitPolicies.Auth)]
-public sealed class AuthController(AuthService auth, RefreshCookie refreshCookie) : ControllerBase
+public sealed class AuthController(AuthService auth, RefreshCookie refreshCookie, IEmailSender email) : ControllerBase
 {
+    [HttpGet("options")]
+    [AllowAnonymous]
+    public AuthOptionsResponse Options() => new(email.IsEnabled);
+
+    [HttpPost("forgot-password")]
+    [AllowAnonymous]
+    public async Task<IActionResult> ForgotPassword(ForgotPasswordRequest request, CancellationToken cancellationToken)
+    {
+        var outcome = await auth.ForgotPasswordAsync(request, cancellationToken);
+        return outcome.Status == AuthStatus.Success ? Accepted() : ToResult(outcome);
+    }
+
+    [HttpPost("reset-password")]
+    [AllowAnonymous]
+    public async Task<IActionResult> ResetPassword(ResetPasswordRequest request, CancellationToken cancellationToken)
+    {
+        var outcome = await auth.ResetPasswordAsync(request, cancellationToken);
+        return outcome.Status == AuthStatus.Success ? NoContent() : ToResult(outcome);
+    }
+
     [HttpPost("register")]
     [AllowAnonymous]
     public async Task<IActionResult> Register(RegisterRequest request, CancellationToken cancellationToken) =>
@@ -92,6 +113,21 @@ public sealed class AuthController(AuthService auth, RefreshCookie refreshCookie
                     statusCode: StatusCodes.Status401Unauthorized,
                     title: Lang.T("انتهت الجلسة", "Session ended"),
                     detail: Lang.T("سجّل الدخول مرة أخرى.", "Please sign in again."));
+
+            case AuthStatus.InvalidResetCode:
+                return ValidationProblem(new ValidationProblemDetails(new Dictionary<string, string[]>
+                {
+                    ["code"] = [Lang.T("الرمز غير صحيح أو انتهت صلاحيته. اطلب رمزاً جديداً.", "The code is wrong or has expired. Ask for a new one.")],
+                })
+                {
+                    Title = Lang.T("بعض البيانات غير صحيحة", "Some details need fixing"),
+                });
+
+            case AuthStatus.EmailUnavailable:
+                return Problem(
+                    statusCode: StatusCodes.Status503ServiceUnavailable,
+                    title: Lang.T("الاسترجاع بالبريد غير متاح حالياً", "Email recovery is not available yet"),
+                    detail: Lang.T("تواصل مع مدير التطبيق ليعيد تعيين كلمة المرور لك.", "Contact the app admin to reset your password."));
 
             default:
                 throw new InvalidOperationException($"Unhandled auth status {outcome.Status}.");

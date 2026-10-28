@@ -44,3 +44,25 @@ public sealed class ChangePasswordRequestValidator : AbstractValidator<ChangePas
             .NotEqual(x => x.CurrentPassword).WithMessage(_ => Lang.T("كلمة المرور الجديدة يجب أن تختلف عن الحالية.", "The new password must be different from the current one."));
     }
 }
+
+public sealed class ForgotPasswordRequestValidator : AbstractValidator<ForgotPasswordRequest>
+{
+    public ForgotPasswordRequestValidator()
+    {
+        RuleFor(x => x.Email).NotEmpty().MaximumLength(254).EmailAddress()
+            .WithMessage(_ => Lang.T("اكتب بريداً إلكترونياً صحيحاً.", "Enter a valid email address."));
+    }
+}
+
+public sealed class ResetPasswordRequestValidator : AbstractValidator<ResetPasswordRequest>
+{
+    public ResetPasswordRequestValidator()
+    {
+        RuleFor(x => x.Email).NotEmpty().MaximumLength(254).EmailAddress()
+            .WithMessage(_ => Lang.T("اكتب بريداً إلكترونياً صحيحاً.", "Enter a valid email address."));
+        RuleFor(x => x.Code).NotEmpty().Matches("^[0-9]{6}$").WithMessage(_ => Lang.T("الرمز 6 أرقام.", "The code has 6 digits."));
+        RuleFor(x => x.NewPassword)
+            .NotEmpty().WithMessage(_ => Lang.T("كلمة المرور الجديدة مطلوبة.", "New password is required."))
+            .Length(8, 128).WithMessage(_ => Lang.T("كلمة المرور من 8 إلى 128 حرفاً.", "Password must be 8 to 128 characters."));
+    }
+}

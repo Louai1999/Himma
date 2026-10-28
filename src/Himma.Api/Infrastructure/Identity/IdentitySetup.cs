@@ -27,12 +27,20 @@ public static class IdentitySetup
                 options.Lockout.MaxFailedAccessAttempts = 5;
                 options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
 
+                // Email is optional (accounts created before email existed have none); confirmed emails are
+                // kept unique in code (see AccountEmailController).
                 options.User.RequireUniqueEmail = false;
+
+                // Six-digit codes sent by email, tied to the security stamp: they stop working as soon as the
+                // password or the email changes, so each code can only be used once.
+                options.Tokens.ChangeEmailTokenProvider = TokenOptions.DefaultEmailProvider;
+                options.Tokens.PasswordResetTokenProvider = TokenOptions.DefaultEmailProvider;
             })
             .AddRoles<IdentityRole>()
             .AddEntityFrameworkStores<AppDbContext>()
             .AddErrorDescriber<LocalizedIdentityErrorDescriber>()
-            .AddPasswordValidator<CommonPasswordValidator>();
+            .AddPasswordValidator<CommonPasswordValidator>()
+            .AddDefaultTokenProviders();
 
         return services;
     }

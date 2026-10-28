@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using Himma.Api.Domain.Entities;
 using Himma.Api.Features.Account;
 using Himma.Api.Infrastructure.Audit;
@@ -17,8 +18,42 @@ public sealed class AdminActionsController(
     UserManager<ApplicationUser> users,
     AccountLifecycleService lifecycle,
     PasswordReauthentication reauthentication,
+    RefreshTokenService refreshTokens,
     AuditLogger audit) : AdminControllerBase(users)
 {
+    private const string TemporaryPasswordAlphabet = "abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
+    /// <summary>
+    /// For someone who forgot their password and has no recovery email: sets a random temporary password,
+    /// shown to the admin once, and makes the user choose a new one at the next sign-in. The admin hands it
+    /// over only after checking who is asking. Every device of the user is signed out.
+    /// </summary>
+    [HttpPost("reset-password")]
+    public async Task<ActionResult<TemporaryPasswordResponse>> ResetPassword(string id, AdminReauthRequest request, CancellationToken cancellationToken)
+    {
+        var (user, error) = await FindManageableAsync(id);
+        if (user is null) return error!;
+        if (await ReauthenticateAsync(request.AdminPassword, user.Id, cancellationToken) is { } denied) return denied;
+
+        var temporary = string.Concat(Enumerable.Range(0, 12)
+            .Select(_ => TemporaryPasswordAlphabet[RandomNumberGenerator.GetInt32(TemporaryPasswordAlphabet.Length)]));
+        var token = await Users.GeneratePasswordResetTokenAsync(user);
+        var reset = await Users.ResetPasswordAsync(user, token, temporary);
+        if (!reset.Succeeded)
+        {
+            // Practically impossible with 12 random characters; never echo the password in an error.
+            return WrongState(Lang.T("تعذّر إنشاء كلمة مرور مؤقتة، حاول مرة أخرى.", "Could not create a temporary password, please try again."));
+        }
+
+        user.MustChangePassword = true;
+        await Users.UpdateAsync(user);
+        await Users.SetLockoutEndDateAsync(user, null);
+        await Users.ResetAccessFailedCountAsync(user);
+        await refreshTokens.RevokeAllForUserAsync(user.Id, cancellationToken);
+        await audit.WriteAsync(AuditActions.ResetPassword, user.Id, new { username = user.UserName }, cancellationToken);
+        return new TemporaryPasswordResponse(temporary);
+    }
+
     [HttpPost("suspend")]
     public async Task<IActionResult> Suspend(string id, AdminReauthRequest request, CancellationToken cancellationToken)
     {

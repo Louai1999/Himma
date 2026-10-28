@@ -14,4 +14,7 @@ public class ApplicationUser : IdentityUser
     public DateTime? DeletedAtUtc { get; set; }
     public DateTime? DeletionScheduledForUtc { get; set; }
     public DateTime PrivacyConsentAtUtc { get; set; }
+
+    /// <summary>Set when an admin gave a temporary password; the app asks for a new one at the next sign-in.</summary>
+    public bool MustChangePassword { get; set; }
 }

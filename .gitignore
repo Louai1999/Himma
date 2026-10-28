@@ -27,3 +27,9 @@ secrets.json
 *.p12
 *.pem
 *.key
+
+# Promo video build
+promo/node_modules/
+promo/stills/
+promo/*.mp4
+promo/probe.mjs

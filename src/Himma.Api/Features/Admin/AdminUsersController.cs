@@ -135,7 +135,9 @@ public sealed class AdminUsersController(
             month.Weights,
             month.Weights.Count >= 2 ? Math.Round(month.Weights[^1].WeightKg - month.Weights[0].WeightKg, 1) : null,
             twoWeeks.Daily,
-            await WorkoutComplianceAsync(user.Id, today, cancellationToken));
+            await WorkoutComplianceAsync(user.Id, today, cancellationToken),
+            user.EmailConfirmed,
+            user.MustChangePassword);
     }
 
     [HttpGet("users/{id}/meals")]

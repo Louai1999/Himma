@@ -12,6 +12,7 @@ import { openModal } from '../ui/modal.js';
 import { downloadJson } from '../ui/download.js';
 import { startWaterReminder } from './water.js';
 import { pushControls, forgetPushDevice } from '../push.js';
+import { emailCard } from './recovery.js';
 
 /** The profile with its targets, or null when the user has not filled it yet. */
 export async function fetchProfile() {
@@ -49,6 +50,7 @@ export function mount(view) {
     targetsCard,
     reminderCard(),
     accountCard(),
+    emailCard(),
     privacyCard());
 
   loadInto(profileCard, fetchProfile, (data) => {

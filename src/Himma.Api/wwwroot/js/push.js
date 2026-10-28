@@ -19,10 +19,20 @@ function keyBytes(base64Url) {
   return Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
 }
 
+// serviceWorker.ready never settles when the service worker failed to install, so it is always raced
+// against a timeout: sign-out and the account screen must never hang on notifications.
+function readyRegistration(ms = 4000) {
+  return Promise.race([
+    navigator.serviceWorker.ready,
+    new Promise((_, reject) => setTimeout(() => reject(new Error(t('التنبيهات غير جاهزة في هذا المتصفح. حدّث الصفحة وحاول مرة أخرى.'))), ms)),
+  ]);
+}
+
 async function subscription() {
   if (!pushSupported) return null;
-  const registration = await navigator.serviceWorker.ready;
-  return registration.pushManager.getSubscription();
+  // getRegistration answers at once (undefined when there is none), unlike serviceWorker.ready.
+  const registration = await navigator.serviceWorker.getRegistration();
+  return registration ? registration.pushManager.getSubscription() : null;
 }
 
 async function save(sub) {
@@ -42,7 +52,7 @@ export async function enablePush() {
     throw new Error(t('لم تسمح بالإشعارات. يمكنك السماح بها من إعدادات المتصفح للموقع.'));
   }
   const { publicKey } = await get('/push/key');
-  const registration = await navigator.serviceWorker.ready;
+  const registration = await readyRegistration();
   const options = { userVisibleOnly: true, applicationServerKey: keyBytes(publicKey) };
   let sub;
   try {

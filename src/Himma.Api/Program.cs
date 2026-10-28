@@ -6,6 +6,7 @@ using Himma.Api.Features.Account;
 using Himma.Api.Features.Admin;
 using Himma.Api.Features.History;
 using Himma.Api.Features.Supplements;
+using Himma.Api.Infrastructure.Email;
 using Himma.Api.Infrastructure.Push;
 using Himma.Api.Infrastructure.Audit;
 using Himma.Api.Features.Workouts;
@@ -63,6 +64,14 @@ builder.Services.AddOptions<ReminderOptions>().Bind(builder.Configuration.GetSec
 builder.Services.AddSingleton<PushKeyStore>();
 builder.Services.AddSingleton<TakeTokens>();
 builder.Services.AddScoped<SupplementIntakeService>();
+
+// Email for account recovery (off until Email:ApiKey and Email:FromAddress are set).
+builder.Services.AddOptions<EmailOptions>().Bind(builder.Configuration.GetSection(EmailOptions.SectionName));
+builder.Services.AddHttpClient<IEmailSender, BrevoEmailSender>(client => client.Timeout = TimeSpan.FromSeconds(15));
+if (builder.Environment.IsDevelopment() && !(builder.Configuration.GetSection(EmailOptions.SectionName).Get<EmailOptions>()?.IsConfigured ?? false))
+{
+    builder.Services.AddSingleton<IEmailSender, DevelopmentLogEmailSender>();
+}
 builder.Services.AddHttpClient<IPushSender, WebPushSender>(client => client.Timeout = TimeSpan.FromSeconds(15));
 builder.Services.AddSingleton<ReminderService>();
 builder.Services.AddHostedService(provider => provider.GetRequiredService<ReminderService>());

@@ -19,12 +19,13 @@ public static class AuditActions
     public const string Restore = "admin.restore";
     public const string Purge = "admin.purge";
     public const string ReauthFailed = "admin.reauth_failed";
+    public const string ResetPassword = "admin.reset_password";
     public const string SystemPurge = "system.purge";
     public const string SelfDelete = "user.self_delete";
     public const string SelfExport = "user.export";
 
     public static readonly string[] All =
-        [ViewUser, ViewMeals, ExportUser, Suspend, Reactivate, SoftDelete, Restore, Purge, ReauthFailed, SystemPurge, SelfDelete, SelfExport];
+        [ViewUser, ViewMeals, ExportUser, Suspend, Reactivate, SoftDelete, Restore, Purge, ReauthFailed, ResetPassword, SystemPurge, SelfDelete, SelfExport];
 }
 
 /// <summary>

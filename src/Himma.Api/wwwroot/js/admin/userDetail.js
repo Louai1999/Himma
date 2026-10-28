@@ -5,7 +5,7 @@ import { genders, activities, goals, mealTypes } from '../labels.js';
 import { h, fill, add, fmt } from '../ui/dom.js';
 import { icon } from '../ui/icons.js';
 import { ring, lineChart, barChart } from '../ui/charts.js';
-import { confirmDialog } from '../ui/modal.js';
+import { confirmDialog, openModal } from '../ui/modal.js';
 import { calmNotice, loadInto } from '../ui/notice.js';
 import { showSaved } from '../ui/toast.js';
 import { downloadJson } from '../ui/download.js';
@@ -45,7 +45,9 @@ function accountCard(user) {
       fact(t('تاريخ الاشتراك'), formatDate(user.createdAtUtc)),
       fact(t('آخر دخول'), formatDateTime(user.lastLoginAtUtc)),
       fact(t('آخر نشاط'), formatDateTime(user.lastActivityAtUtc)),
-      user.deletionScheduledForUtc && fact(t('الحذف النهائي في'), formatDateTime(user.deletionScheduledForUtc))),
+      user.deletionScheduledForUtc && fact(t('الحذف النهائي في'), formatDateTime(user.deletionScheduledForUtc)),
+      fact(t('بريد الاسترجاع'), user.hasRecoveryEmail ? t('مضاف ومؤكد ✓') : t('غير مضاف')),
+      user.mustChangePassword && fact(t('كلمة المرور'), t('مؤقتة، بانتظار تغييرها'))),
     h('div', { class: 'row' },
       h('button', {
         type: 'button', class: 'btn btn-secondary btn-sm', onclick: async (event) => {
@@ -178,6 +180,30 @@ function mealsCard(user) {
     result);
 }
 
+/** Shows the temporary password once, with a copy button. It is never shown or stored again. */
+function showTemporaryPassword(username, password) {
+  const status = h('div');
+  const copy = h('button', {
+    type: 'button', class: 'btn btn-secondary', onclick: async () => {
+      try {
+        await navigator.clipboard.writeText(password);
+        fill(status, h('p', { class: 'small', text: t('تم النسخ') }));
+      } catch {
+        fill(status, h('p', { class: 'small', text: t('انسخها يدوياً من المربع.') }));
+      }
+    },
+  }, icon('copy', 16), t('نسخ'));
+  const modal = openModal({
+    title: t('كلمة المرور المؤقتة'),
+    content: h('div', { class: 'stack' },
+      h('p', { text: t('كلمة المرور المؤقتة لـ {name}:', { name: username }) }),
+      h('p', { class: 'num', style: 'font-size:1.6rem;text-align:center;padding:12px;background:var(--forest-pale);border-radius:12px;user-select:all', text: password }),
+      h('p', { class: 'muted small', text: t('لن تظهر مرة أخرى. بعد أول دخول بها، يختار المشترك كلمة مرور جديدة، ونقترح عليه إضافة بريد للاسترجاع.') }),
+      h('div', { class: 'row' }, copy, h('button', { type: 'button', class: 'btn', onclick: () => modal.close() }, t('تم'))),
+      status),
+  });
+}
+
 function dangerZone(user, reload) {
   const status = h('div');
   const base = `/admin/users/${encodeURIComponent(user.id)}`;
@@ -218,6 +244,19 @@ function dangerZone(user, reload) {
     },
   });
 
+  // Someone forgot their password and has no recovery email: give a temporary one, shown once.
+  const resetPassword = () => openPasswordAction({
+    title: t('إعادة تعيين كلمة المرور'),
+    message: t('ستُنشأ كلمة مرور مؤقتة لـ {name} وتظهر لك مرة واحدة فقط، ويُسجَّل خروجه من كل الأجهزة. عند أول دخول سيُطلب منه اختيار كلمة مرور جديدة.', { name: user.username }),
+    details: [t('تأكد أولاً أن من يطلب هو صاحب الحساب فعلاً.'), t('أعطه كلمة المرور بطريقة خاصة، لا في مكان عام.')],
+    confirmText: t('أنشئ كلمة مرور مؤقتة'),
+    onConfirm: async (body) => {
+      const result = await post(`${base}/reset-password`, body);
+      showTemporaryPassword(user.username, result.temporaryPassword);
+      reload();
+    },
+  });
+
   const simple = async (path, title, message, saved) => {
     if (!(await confirmDialog({ title, message, confirmText: title }))) return;
     try {
@@ -230,6 +269,7 @@ function dangerZone(user, reload) {
 
   const buttons = [];
   if (user.status === 'active') {
+    buttons.push(h('button', { type: 'button', class: 'btn btn-secondary', onclick: resetPassword }, t('إعادة تعيين كلمة المرور')));
     buttons.push(h('button', { type: 'button', class: 'btn btn-secondary', onclick: suspend }, t('إيقاف الحساب')));
   }
   if (user.status === 'suspended') {

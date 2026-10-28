@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using Himma.Api.Domain.Entities;
+using Himma.Api.Infrastructure.Email;
 using Himma.Api.Infrastructure.Push;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
@@ -73,11 +74,16 @@ public sealed class HimmaApiFactory : WebApplicationFactory<Program>
         {
             services.RemoveAll<IPushSender>();
             services.AddSingleton<IPushSender>(Push);
+            services.RemoveAll<IEmailSender>();
+            services.AddSingleton<IEmailSender>(Email);
         });
     }
 
     /// <summary>Every push message the app tried to send.</summary>
     public FakePushSender Push { get; } = new();
+
+    /// <summary>Every email the app tried to send. Email is "configured" unless a test switches it off.</summary>
+    public FakeEmailSender Email { get; } = new();
 
     protected override void Dispose(bool disposing)
     {
@@ -116,5 +122,25 @@ public sealed class FakePushSender : IPushSender
         }
         Sent.Enqueue((device.Endpoint, payload));
         return Task.FromResult(PushSendResult.Sent);
+    }
+}
+
+/// <summary>Records emails instead of sending them.</summary>
+public sealed class FakeEmailSender : IEmailSender
+{
+    public bool IsEnabled { get; set; } = true;
+    public ConcurrentQueue<EmailMessage> Sent { get; } = new();
+
+    public IReadOnlyList<EmailMessage> To(string address) =>
+        Sent.Where(m => string.Equals(m.ToAddress, address, StringComparison.OrdinalIgnoreCase)).ToList();
+
+    /// <summary>The 6-digit code in the newest email to this address.</summary>
+    public string LastCodeTo(string address) =>
+        System.Text.RegularExpressions.Regex.Match(To(address)[^1].Text, @"(?m)^\d{6}\r?$").Value.Trim();
+
+    public Task<bool> SendAsync(EmailMessage message, CancellationToken cancellationToken)
+    {
+        Sent.Enqueue(message);
+        return Task.FromResult(true);
     }
 }

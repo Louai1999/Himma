@@ -236,6 +236,50 @@ GET {{baseUrl}}/api/workouts/volume?weeks=4&today={{today}}
 Authorization: Bearer {{token}}
 
 
+######################## Account recovery ########################
+
+### Is email recovery available? (anonymous)
+GET {{baseUrl}}/api/auth/options
+
+### Forgot password or username: emails the username and a 6-digit code (same answer for any email)
+POST {{baseUrl}}/api/auth/forgot-password
+Content-Type: application/json
+
+{
+  "email": "me@example.com"
+}
+
+### Reset the password with the emailed code
+POST {{baseUrl}}/api/auth/reset-password
+Content-Type: application/json
+
+{
+  "email": "me@example.com",
+  "code": "123456",
+  "newPassword": "a-new-long-password"
+}
+
+### Add or change the recovery email (sends a code to it; needs the current password)
+POST {{baseUrl}}/api/account/email
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "email": "me@example.com",
+  "password": "{{password}}"
+}
+
+### Confirm the recovery email with the code
+POST {{baseUrl}}/api/account/email/confirm
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "email": "me@example.com",
+  "code": "123456"
+}
+
+
 ######################## Supplements and notifications ########################
 
 ### My supplements

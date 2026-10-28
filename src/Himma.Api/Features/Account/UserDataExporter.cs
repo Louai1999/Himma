@@ -17,6 +17,7 @@ public sealed class UserDataExporter(AppDbContext db)
             {
                 u.UserName,
                 u.DisplayName,
+                Email = u.EmailConfirmed ? u.Email : null,
                 u.CreatedAtUtc,
                 u.LastLoginAtUtc,
                 u.PrivacyConsentAtUtc,

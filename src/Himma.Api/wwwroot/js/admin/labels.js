@@ -21,6 +21,7 @@ export const auditActions = {
   'admin.restore': t('استرجاع حساب'),
   'admin.purge': t('حذف نهائي'),
   'admin.reauth_failed': t('كلمة مرور المدير خاطئة'),
+  'admin.reset_password': t('إعادة تعيين كلمة مرور مشترك'),
   'system.purge': t('حذف نهائي تلقائي'),
   'user.self_delete': t('المستخدم حذف حسابه'),
   'user.export': t('المستخدم صدّر بياناته'),

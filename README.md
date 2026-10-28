@@ -130,6 +130,7 @@ HIMMA_ADMIN_PASSWORD=كلمة-مرور-المدير
 | `ConnectionStrings__Postgres` **أو** `DATABASE_URL` | عنوان قاعدة PostgreSQL. يقبل الصيغتين: `Host=...;Database=...` أو `postgresql://user:pass@host:5432/db` |
 | `AllowedHosts` (اختياري، مُستحسن) | نطاق موقعك، مثل `himma.onrender.com` |
 | `Push__PublicKey` و`Push__PrivateKey` (اختياري) | مفاتيح التنبيهات (VAPID). اتركهما فارغين: التطبيق ينشئ زوج مفاتيح مرة واحدة ويحفظه في قاعدة البيانات |
+| `Email__ApiKey` و`Email__FromAddress` (اختياري) | تفعيل الاسترجاع بالبريد عبر Brevo (انظر 2.3.1). بدونهما تختفي ميزات البريد، ويبقى «إعادة تعيين كلمة المرور» من لوحة المدير |
 
 > الشرطتان `__` في الأسماء تعني `:` في الإعدادات (مثل `Jwt:Key`).
 
@@ -168,6 +169,18 @@ dotnet Himma.Api.dll --migrate
 > `powershell -ExecutionPolicy Bypass -File .\scripts\migrate-render.ps1`
 >
 > الخطة المجانية: تطبيق Render ينام بعد 15 دقيقة من عدم الاستخدام (أول فتح يأخذ دقيقة تقريباً)، ومشروع Supabase المجاني **يتوقف مؤقتاً بعد أسبوع بلا أي نشاط** (تعيد تشغيله من لوحة Supabase، والبيانات تبقى).
+
+### 2.3.1 البريد لاسترجاع الحساب (Brevo، مجاني حتى 300 رسالة يومياً)
+
+1. أنشئ حساباً في https://www.brevo.com .
+2. **Senders, Domains & Dedicated IPs → Senders → Add a sender**: أضف بريدك (مثل Gmail) وأكّده من الرسالة التي تصلك.
+3. **SMTP & API → API Keys → Generate a new API key**، وانسخ المفتاح (لا تضعه في الكود ولا في أي محادثة).
+4. في Render → خدمة التطبيق → **Environment** أضف:
+   - `Email__ApiKey` = المفتاح
+   - `Email__FromAddress` = البريد الذي أكدته في الخطوة 2
+5. **Save Changes**. بعد إعادة التشغيل يظهر «نسيت كلمة المرور؟» بالبريد، وقسم «البريد الإلكتروني للاسترجاع» في «حسابي».
+
+> في التطوير، بدون مفتاح، تُكتب الرسائل (مع الرموز) في سجل الخادم بدل إرسالها، لتجربة الشاشات محلياً.
 
 ### 2.4 Railway
 

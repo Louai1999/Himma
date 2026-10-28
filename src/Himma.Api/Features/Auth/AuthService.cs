@@ -1,9 +1,11 @@
 using Himma.Api.Domain;
 using Himma.Api.Domain.Entities;
 using Himma.Api.Infrastructure.Auth;
+using Himma.Api.Infrastructure.Email;
 using Himma.Api.Infrastructure.Identity;
 using Himma.Api.Options;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Himma.Api.Infrastructure.Localization;
 
@@ -18,6 +20,8 @@ public enum AuthStatus
     UsernameTaken,
     ValidationFailed,
     InvalidRefreshToken,
+    InvalidResetCode,
+    EmailUnavailable,
 }
 
 public sealed record AuthOutcome(
@@ -31,6 +35,7 @@ public sealed class AuthService(
     TokenService tokens,
     RefreshTokenService refreshTokens,
     IOptions<AdminOptions> adminOptions,
+    IEmailSender email,
     ILogger<AuthService> logger)
 {
     // Checked against when the username does not exist, so "unknown user" takes as long as "wrong password".
@@ -179,10 +184,77 @@ public sealed class AuthService(
         // ChangePasswordAsync rotated the security stamp, so every old access token is now rejected.
         // Sign out every other device and give this one a fresh session.
         await users.ResetAccessFailedCountAsync(user);
+        if (user.MustChangePassword)
+        {
+            user.MustChangePassword = false;
+            await users.UpdateAsync(user);
+        }
         await refreshTokens.RevokeAllForUserAsync(user.Id, cancellationToken);
         logger.LogInformation("User {UserId} changed their password", user.Id);
 
         return await StartSessionAsync(user, client, cancellationToken);
+    }
+
+    /// <summary>
+    /// Emails the username and a 6-digit reset code to the account with this confirmed email. The answer is
+    /// the same whether or not such an account exists, so nobody can test which emails are registered.
+    /// </summary>
+    public async Task<AuthOutcome> ForgotPasswordAsync(ForgotPasswordRequest request, CancellationToken cancellationToken)
+    {
+        if (!email.IsEnabled)
+        {
+            return new AuthOutcome(AuthStatus.EmailUnavailable);
+        }
+
+        var user = await FindByConfirmedEmailAsync(request.Email);
+        if (user is not null && user.IsActive && user.DeletedAtUtc is null && !await users.IsLockedOutAsync(user))
+        {
+            var code = await users.GeneratePasswordResetTokenAsync(user);
+            var sent = await email.SendAsync(EmailTemplates.ResetPassword(user.Email!, user.UserName ?? string.Empty, code), cancellationToken);
+            logger.LogInformation("Password reset requested for {UserId} (sent: {Sent})", user.Id, sent);
+        }
+        return new AuthOutcome(AuthStatus.Success);
+    }
+
+    /// <summary>
+    /// Sets a new password with the emailed code. Wrong codes count towards the lockout; after a reset every
+    /// device is signed out and the code stops working (the security stamp changed).
+    /// </summary>
+    public async Task<AuthOutcome> ResetPasswordAsync(ResetPasswordRequest request, CancellationToken cancellationToken)
+    {
+        var user = await FindByConfirmedEmailAsync(request.Email);
+        if (user is null || !user.IsActive || user.DeletedAtUtc is not null || await users.IsLockedOutAsync(user))
+        {
+            return new AuthOutcome(AuthStatus.InvalidResetCode);
+        }
+
+        var reset = await users.ResetPasswordAsync(user, request.Code, request.NewPassword);
+        if (!reset.Succeeded)
+        {
+            if (reset.Errors.Any(e => e.Code == nameof(IdentityErrorDescriber.InvalidToken)))
+            {
+                await users.AccessFailedAsync(user);
+                return new AuthOutcome(AuthStatus.InvalidResetCode);
+            }
+            return new AuthOutcome(AuthStatus.ValidationFailed, Errors: ToErrors(reset, passwordField: "newPassword"));
+        }
+
+        await users.ResetAccessFailedCountAsync(user);
+        user.MustChangePassword = false;
+        await users.UpdateAsync(user);
+        await refreshTokens.RevokeAllForUserAsync(user.Id, cancellationToken);
+        logger.LogInformation("User {UserId} reset their password by email", user.Id);
+        return new AuthOutcome(AuthStatus.Success);
+    }
+
+    private async Task<ApplicationUser?> FindByConfirmedEmailAsync(string address)
+    {
+        if (string.IsNullOrWhiteSpace(address))
+        {
+            return null;
+        }
+        var normalized = users.NormalizeEmail(address.Trim());
+        return await users.Users.FirstOrDefaultAsync(u => u.EmailConfirmed && u.NormalizedEmail == normalized);
     }
 
     private async Task<AuthOutcome> StartSessionAsync(ApplicationUser user, ClientInfo client, CancellationToken cancellationToken)
@@ -196,7 +268,8 @@ public sealed class AuthService(
     {
         var roles = (await users.GetRolesAsync(user)).ToList();
         var (accessToken, expiresAtUtc) = tokens.CreateAccessToken(user, roles);
-        return new AuthResponse(accessToken, expiresAtUtc, new AuthUser(user.Id, user.UserName ?? string.Empty, user.DisplayName, roles));
+        return new AuthResponse(accessToken, expiresAtUtc,
+            new AuthUser(user.Id, user.UserName ?? string.Empty, user.DisplayName, roles, user.MustChangePassword, user.EmailConfirmed));
     }
 
     private bool IsAdminUsername(string username) =>

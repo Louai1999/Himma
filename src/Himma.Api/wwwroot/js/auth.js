@@ -5,25 +5,50 @@ import { h, fill, add } from './ui/dom.js';
 import { field, showErrors, clearErrors } from './ui/forms.js';
 import { calmNotice } from './ui/notice.js';
 import { logo } from './ui/logo.js';
+import { forgotFlow, forcedChange } from './features/recovery.js';
 
 /**
  * The sign-in / sign-up gate. Calls onSignedIn(authResponse) when done.
  * The admin page passes allowRegister: false (admins are never created through sign-up).
+ * forceChange: a signed-in session whose temporary password must be replaced first.
  */
-export function renderAuth(root, onSignedIn, message, { allowRegister = true, subtitle } = {}) {
+export function renderAuth(root, onSignedIn, message, { allowRegister = true, subtitle, forceChange = null } = {}) {
   let mode = 'login';
   const formSlot = h('div', { class: 'card' });
+  const messageSlot = h('div');
   const loginTab = h('button', { type: 'button', onclick: () => switchTo('login') }, t('تسجيل الدخول'));
   const registerTab = h('button', { type: 'button', onclick: () => switchTo('register') }, t('حساب جديد'));
 
   fill(root, h('main', { class: 'auth' },
     h('div', { class: 'auth-top' }, languageSwitch()),
     h('div', { class: 'brand-block' }, logo(110), h('h1', { text: t('هِمّة') }), h('p', { class: 'muted', text: subtitle ?? t('أكلك وماؤك ووزنك وتمارينك في مكان واحد.') })),
-    message && calmNotice(message),
+    messageSlot,
     allowRegister && h('div', { class: 'segmented', role: 'group', 'aria-label': t('نوع الدخول') }, loginTab, registerTab),
     formSlot));
+  if (message) fill(messageSlot, calmNotice(message));
 
-  switchTo('login');
+  if (forceChange) requireNewPassword(forceChange);
+  else switchTo('login');
+
+  /** An admin gave a temporary password: choose a new one before anything else. */
+  function requireNewPassword(auth) {
+    loginTab.parentElement?.style.setProperty('display', 'none');
+    fill(messageSlot);
+    forcedChange(formSlot, auth, onSignedIn);
+  }
+
+  function showForgot() {
+    loginTab.parentElement?.style.setProperty('display', 'none');
+    fill(messageSlot);
+    forgotFlow(formSlot, {
+      onBack: () => { loginTab.parentElement?.style.removeProperty('display'); switchTo('login'); },
+      onDone: (text) => {
+        loginTab.parentElement?.style.removeProperty('display');
+        switchTo('login');
+        fill(messageSlot, h('div', { class: 'notice info', role: 'status', text }));
+      },
+    });
+  }
 
   function switchTo(next) {
     mode = next;
@@ -36,10 +61,12 @@ export function renderAuth(root, onSignedIn, message, { allowRegister = true, su
   function loginForm() {
     const username = h('input', { type: 'text', autocomplete: 'username', required: true, dir: 'ltr' });
     const password = h('input', { type: 'password', autocomplete: 'current-password', required: true, dir: 'ltr' });
-    return authForm(t('دخول'), [
+    const form = authForm(t('دخول'), [
       field(t('اسم المستخدم'), username, { name: 'username' }),
       field(t('كلمة المرور'), password, { name: 'password' }),
     ], () => post('/auth/login', { username: username.value.trim(), password: password.value }));
+    return h('div', { class: 'stack' }, form,
+      h('button', { type: 'button', class: 'btn btn-ghost btn-sm', onclick: showForgot }, t('نسيت كلمة المرور أو اسم المستخدم؟')));
   }
 
   function registerForm() {
@@ -75,7 +102,8 @@ export function renderAuth(root, onSignedIn, message, { allowRegister = true, su
       try {
         const auth = await submit();
         setSession(auth);
-        onSignedIn(auth);
+        if (auth.user.mustChangePassword) requireNewPassword(auth);
+        else onSignedIn(auth);
       } catch (error) {
         const message = showErrors(form, error);
         if (message) fill(status, calmNotice(message));

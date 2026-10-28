@@ -64,7 +64,9 @@ public sealed record AdminUserDetail(
     IReadOnlyList<WeightPointDto> Weights30,
     double? WeightChange30Kg,
     IReadOnlyList<SummaryDayDto> Last14Days,
-    WorkoutCompliance Workouts);
+    WorkoutCompliance Workouts,
+    bool HasRecoveryEmail,
+    bool MustChangePassword);
 
 public sealed record AuditLogRow(
     long Id,
@@ -167,6 +169,9 @@ public sealed class AuditLogQueryValidator : AbstractValidator<AuditLogQuery>
 // ---------- Actions ----------
 
 /// <summary>Destructive admin actions ask for the admin's own password again.</summary>
+/// <summary>Shown to the admin once; the user must replace it at the next sign-in.</summary>
+public sealed record TemporaryPasswordResponse(string TemporaryPassword);
+
 public sealed class AdminReauthRequest
 {
     public string AdminPassword { get; init; } = string.Empty;

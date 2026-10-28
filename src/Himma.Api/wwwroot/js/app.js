@@ -18,6 +18,7 @@ import * as supplements from './features/supplements.js';
 import * as records from './features/records.js';
 import * as volume from './features/volume.js';
 import { syncPush } from './push.js';
+import { showEmailBanner } from './features/recovery.js';
 
 const root = document.getElementById('app');
 document.title = t('هِمّة');
@@ -40,7 +41,8 @@ start();
 async function start() {
   try {
     const auth = await refreshSession();
-    if (auth) showApp(auth);
+    if (auth?.user.mustChangePassword) renderAuth(root, showApp, null, { forceChange: auth });
+    else if (auth) showApp(auth);
     else showAuth();
   } catch (error) {
     fill(root, h('div', { class: 'auth' }, calmNotice(error, start)));
@@ -77,6 +79,7 @@ function showApp(auth) {
   startRouter({ mainEl: main, navEl: nav, tabs: TABS, hidden: { session: session.mount, supplements: supplements.mount, records: records.mount, volume: volume.mount }, parentTabs: { session: 'workouts', supplements: 'today', records: 'workouts', volume: 'workouts' } });
   startWaterReminder();
   syncPush();
+  showEmailBanner(auth.user);
 }
 
 function registerServiceWorker() {
