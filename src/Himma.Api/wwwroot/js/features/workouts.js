@@ -66,6 +66,7 @@ function showTemplates(body) {
             h('div', { class: 'meta' }, d.items.map((i, n) => [n > 0 && t('، '),
               h('button', { type: 'button', class: 'link-btn', onclick: () => openExerciseInfo(i.exercise) }, i.exercise.name)])))))),
       h('p', { class: 'muted small', text: t('باقي الأيام راحة.') }),
+      h('p', { class: 'muted small guide-hint', text: t('اضغط على اسم أي تمرين وتشوف طريقته بالصور.') }),
       status,
       use);
   }

@@ -262,6 +262,7 @@ export function mount(view) {
             h('span', { class: 'grow title', text: item.exercise.name }),
             h('span', { class: 'meta' }, h('span', { class: 'num', text: `${item.sets} × ${item.reps}` })),
             exerciseInfoButton(item.exercise)))),
+        h('p', { class: 'muted small guide-hint', text: t('ما تعرف تمرين؟ اضغط «الشرح» جنبه وتشوف طريقته بالصور.') }),
         start);
     } catch (error) {
       if (error.status !== 401) fill(workoutCard, calmNotice(error, loadWorkout));
