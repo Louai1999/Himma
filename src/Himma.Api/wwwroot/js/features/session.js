@@ -5,6 +5,7 @@ import { days, exerciseTarget } from '../labels.js';
 import { h, fill, add, fmt, debounce } from '../ui/dom.js';
 import { icon } from '../ui/icons.js';
 import { muscleFigure } from '../ui/body.js';
+import { exerciseInfoButton } from '../ui/exerciseInfo.js';
 import { numberInput, readNumber } from '../ui/forms.js';
 import { calmNotice, loadInto } from '../ui/notice.js';
 import { showSaved } from '../ui/toast.js';
@@ -109,7 +110,7 @@ function render(container, session, timer) {
       h('div', { class: 'exercise', style: 'background:transparent;padding:0' },
         muscleFigure(exercise),
         h('div', {},
-          h('h2', { text: exercise.name }),
+          h('div', { class: 'row', style: 'gap:4px;align-items:center' }, h('h2', { text: exercise.name }), exerciseInfoButton(exercise)),
           h('p', { class: 'muted small', text: `${exerciseTarget(exercise)} · ${t('المطلوب {sets} × {reps}', { sets: entry.plannedSets, reps: entry.plannedReps })} · ${t('راحة {s} ث', { s: entry.restSeconds ?? DEFAULT_REST_SECONDS })}` }),
           entry.last && h('p', { class: 'small' }, t('آخر مرة: '), h('span', { class: 'num', text: t('{kg} كغ × {reps}', { kg: fmt(entry.last.weightKg ?? 0), reps: entry.last.reps }) })))),
       !locked && entry.hint && hintNotice(entry, renderRows),

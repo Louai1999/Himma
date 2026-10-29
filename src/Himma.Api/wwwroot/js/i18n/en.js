@@ -725,4 +725,16 @@ export default {
   'بدون بريد ما تقدر تسترجع حسابك لو نسيت كلمة المرور.': 'Without an email you cannot recover your account if you forget your password.',
   'تمت الإزالة': 'Removed',
   'التنبيهات غير جاهزة في هذا المتصفح. حدّث الصفحة وحاول مرة أخرى.': 'Notifications are not ready in this browser. Refresh the page and try again.',
+
+  // Exercise guides
+  'طريقة أداء {name}': 'How to do {name}',
+  'طريقة الأداء': 'How to do it',
+  'صورتا بداية الحركة ونهايتها': 'Start and end of the movement',
+  'البداية': 'Start',
+  'النهاية': 'End',
+  'العضلة المستهدفة: ': 'Target muscle: ',
+  'عضلات مساعدة: ': 'Helper muscles: ',
+  'الخطوات': 'Steps',
+  'انتبه: ': 'Watch out: ',
+  'شاهد فيديو على يوتيوب': 'Watch a video on YouTube',
 };

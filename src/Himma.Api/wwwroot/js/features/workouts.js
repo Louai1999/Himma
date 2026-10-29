@@ -5,6 +5,7 @@ import { days, muscles, places, exerciseTarget } from '../labels.js';
 import { h, fill, add, fmt } from '../ui/dom.js';
 import { icon } from '../ui/icons.js';
 import { muscleFigure } from '../ui/body.js';
+import { exerciseInfoButton } from '../ui/exerciseInfo.js';
 import { openModal, confirmDialog } from '../ui/modal.js';
 import { field, selectOf, numberInput, readNumber, showErrors, clearErrors } from '../ui/forms.js';
 import { calmNotice, loadInto, skeleton } from '../ui/notice.js';
@@ -322,6 +323,7 @@ function dayEditor(plan, day, onSaved) {
             item.exercise.isArchived && h('span', { class: 'tag muted', text: t('محذوف من المكتبة') })),
           h('div', { class: 'actions' },
             handle,
+            exerciseInfoButton(item.exercise),
             h('button', { type: 'button', class: 'icon-btn', 'aria-label': t('تحريك {name} للأعلى', { name: item.exercise.name }), disabled: index === 0, onclick: () => move(index, index - 1) }, icon('up', 18)),
             h('button', { type: 'button', class: 'icon-btn', 'aria-label': t('تحريك {name} للأسفل', { name: item.exercise.name }), disabled: index === draft.items.length - 1, onclick: () => move(index, index + 1) }, icon('down', 18)),
             h('button', { type: 'button', class: 'icon-btn danger', 'aria-label': t('حذف {name} من اليوم', { name: item.exercise.name }), onclick: () => { draft.items.splice(index, 1); renderItems(); } }, icon('trash', 18)))),

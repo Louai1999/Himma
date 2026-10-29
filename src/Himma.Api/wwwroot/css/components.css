@@ -311,3 +311,22 @@ details.inline-form summary { cursor: pointer; font-weight: 700; color: var(--fo
 
 /* Grid children may shrink below their content (wide tables then scroll inside their card instead of widening the page). */
 .view > *, .stack > *, .grid-2 > *, .grid-3 > * { min-width: 0; }
+
+/* Exercise guide: the start and end photos swap back and forth to show the movement. */
+.exercise-info .motion { position: relative; aspect-ratio: 4 / 3; max-height: 300px; border-radius: var(--radius-sm); overflow: hidden; background: #FBF8F1; }
+.exercise-info .motion img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.exercise-info .motion img.end { animation: motion-swap 2.4s ease-in-out infinite; }
+.exercise-info .motion-label { position: absolute; top: 8px; inset-inline-start: 8px; padding: 2px 8px; border-radius: 999px; background: rgba(255,255,255,.85); font-size: .75rem; font-weight: 700; }
+.exercise-info .motion-label.start { animation: motion-swap 2.4s ease-in-out infinite reverse; }
+.exercise-info .motion-label.end { animation: motion-swap 2.4s ease-in-out infinite; }
+@keyframes motion-swap { 0%, 35% { opacity: 0; } 50%, 85% { opacity: 1; } 100% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .exercise-info .motion { aspect-ratio: auto; display: grid; grid-template-columns: 1fr 1fr; }
+  .exercise-info .motion img { position: static; height: auto; animation: none; }
+  .exercise-info .motion-label { display: none; }
+}
+.exercise-info .figure { width: 92px; height: auto; flex: none; }
+.exercise-info h3 { margin: 0 0 6px; font-size: 1rem; }
+.exercise-info .steps { margin: 0; padding-inline-start: 22px; display: grid; gap: 6px; }
+.exercise-info .tip { margin: 0; padding: 10px 12px; border-radius: var(--radius-sm); background: #FFF6E0; border-inline-start: 3px solid var(--gold); }
+.exercise-info .btn { justify-self: start; text-decoration: none; }

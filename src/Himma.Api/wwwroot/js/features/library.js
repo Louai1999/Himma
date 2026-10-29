@@ -4,6 +4,7 @@ import { muscles, regions, places, exerciseTarget } from '../labels.js';
 import { h, fill, add, debounce } from '../ui/dom.js';
 import { icon } from '../ui/icons.js';
 import { muscleFigure } from '../ui/body.js';
+import { openExerciseInfo } from '../ui/exerciseInfo.js';
 import { openModal, confirmDialog } from '../ui/modal.js';
 import { field, selectOf, numberInput, readNumber, showErrors, clearErrors } from '../ui/forms.js';
 import { calmNotice, skeleton } from '../ui/notice.js';
@@ -80,7 +81,9 @@ export function openLibrary({ place = '', muscle = '', onPick }) {
           h('span', { class: exercise.isSystem ? 'tag muted' : 'tag gold', text: exercise.isSystem ? t('جاهز') : t('تمريني') })),
         h('span', { class: 'muted small', text: `${exerciseTarget(exercise)} · ${places[exercise.place]}${exercise.equipment ? ` · ${exercise.equipment}` : ''}` }),
         exercise.instructions && h('span', { class: 'small', text: exercise.instructions }),
-        h('div', { class: 'row' }, onPick && addButton, actions)));
+        h('div', { class: 'row' }, onPick && addButton,
+          h('button', { type: 'button', class: 'btn btn-ghost btn-sm', onclick: () => openExerciseInfo(exercise) }, icon('info', 16), t('طريقة الأداء')),
+          actions)));
   }
 
   async function clone(exercise) {

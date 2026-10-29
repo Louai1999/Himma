@@ -1,4 +1,5 @@
 using FluentValidation;
+using Himma.Api.Data.Seed;
 using Himma.Api.Domain;
 using Himma.Api.Domain.Entities;
 using Himma.Api.Infrastructure.Localization;
@@ -17,12 +18,30 @@ public sealed record ExerciseDto(
     int DefaultReps,
     string? Instructions,
     bool IsSystem,
-    bool IsArchived)
+    bool IsArchived,
+    ExerciseGuideDto? Guide)
 {
     /// <summary>System exercises come back in the request's language; user exercises as written.</summary>
     public static ExerciseDto From(ExerciseDefinition e) =>
         new(e.Id, Lang.Pick(e.Name, e.NameEn), e.MuscleGroup, e.Region, e.Place, Lang.Pick(e.Equipment, e.EquipmentEn), e.IconKey,
-            e.DefaultSets, e.DefaultReps, Lang.PickOptional(e.Instructions, e.InstructionsEn), e.OwnerUserId is null, e.IsArchived);
+            e.DefaultSets, e.DefaultReps, Lang.PickOptional(e.Instructions, e.InstructionsEn), e.OwnerUserId is null, e.IsArchived,
+            e.OwnerUserId is null ? ExerciseGuideDto.From(ExerciseGuides.Find(e.Name)) : null);
+}
+
+/// <summary>Beginner guide of a system exercise: start/end photos (when there are any), steps, a safety tip and helper muscles.</summary>
+public sealed record ExerciseGuideDto(
+    IReadOnlyList<string> Images,
+    IReadOnlyList<string> Steps,
+    string Tip,
+    IReadOnlyList<string> HelperMuscles)
+{
+    public static ExerciseGuideDto? From(ExerciseGuide? guide) => guide is null
+        ? null
+        : new(
+            guide.MediaKey is null ? [] : [$"/assets/exercises/{guide.MediaKey}/0.jpg", $"/assets/exercises/{guide.MediaKey}/1.jpg"],
+            Lang.IsEnglish ? guide.StepsEn : guide.StepsAr,
+            Lang.T(guide.TipAr, guide.TipEn),
+            guide.HelperMuscles.Select(ExerciseGuides.MuscleName).ToList());
 }
 
 public sealed class ExerciseRequest

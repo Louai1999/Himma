@@ -282,6 +282,13 @@ dotnet dotnet-ef migrations add <الاسم> --context PostgresAppDbContext --ou
 
 ضع ملف `himma-logo.png` في `src/Himma.Api/wwwroot/assets/`، وإلا يُستخدم `himma-logo.svg` الموجود.
 
+### شرح التمارين للمبتدئين
+
+خطوات كل تمرين جاهز ونصيحة الأمان والعضلات المساعدة في `Data/Seed/ExerciseGuides.cs`.
+صور البداية والنهاية في `wwwroot/assets/exercises/<اسم>/0.jpg و 1.jpg` من
+[free-exercise-db](https://github.com/yuhonas/free-exercise-db) (ملكية عامة، Unlicense).
+زر يوتيوب يفتح بحثاً فقط، ولا يُحمَّل شيء من يوتيوب داخل التطبيق.
+
 ### إرشادات التصميم
 
 المجلد `.claude/skills/apple-design` (مثبت بالأمر
