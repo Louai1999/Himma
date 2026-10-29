@@ -5,7 +5,7 @@ import { days, muscles, places, exerciseTarget } from '../labels.js';
 import { h, fill, add, fmt } from '../ui/dom.js';
 import { icon } from '../ui/icons.js';
 import { muscleFigure } from '../ui/body.js';
-import { exerciseInfoButton } from '../ui/exerciseInfo.js';
+import { exerciseInfoButton, openExerciseInfo } from '../ui/exerciseInfo.js';
 import { openModal, confirmDialog } from '../ui/modal.js';
 import { field, selectOf, numberInput, readNumber, showErrors, clearErrors } from '../ui/forms.js';
 import { calmNotice, loadInto, skeleton } from '../ui/notice.js';
@@ -62,7 +62,9 @@ function showTemplates(body) {
         h('li', { class: 'item' },
           h('div', { class: 'grow' },
             h('div', { class: 'title', text: `${days[d.dayKey]}: ${d.focus.map((m) => muscles[m]).join(' + ')}` }),
-            h('div', { class: 'meta', text: d.items.map((i) => i.exercise.name).join(t('، ')) }))))),
+            // Each name opens its guide, so beginners can look an exercise up before choosing a plan.
+            h('div', { class: 'meta' }, d.items.map((i, n) => [n > 0 && t('، '),
+              h('button', { type: 'button', class: 'link-btn', onclick: () => openExerciseInfo(i.exercise) }, i.exercise.name)])))))),
       h('p', { class: 'muted small', text: t('باقي الأيام راحة.') }),
       status,
       use);

@@ -5,6 +5,7 @@ import { todayLocal, formatLong, formatTime, dayKeyOf } from '../dates.js';
 import { mealTypes, muscles } from '../labels.js';
 import { h, fill, add, fmt } from '../ui/dom.js';
 import { icon } from '../ui/icons.js';
+import { exerciseInfoButton } from '../ui/exerciseInfo.js';
 import { ring } from '../ui/charts.js';
 import { calmNotice, skeleton } from '../ui/notice.js';
 import { showSaved } from '../ui/toast.js';
@@ -259,7 +260,8 @@ export function mount(view) {
         h('ul', { class: 'item-list', style: 'margin:10px 0' }, day.items.map((item) =>
           h('li', { class: 'item' },
             h('span', { class: 'grow title', text: item.exercise.name }),
-            h('span', { class: 'meta' }, h('span', { class: 'num', text: `${item.sets} × ${item.reps}` }))))),
+            h('span', { class: 'meta' }, h('span', { class: 'num', text: `${item.sets} × ${item.reps}` })),
+            exerciseInfoButton(item.exercise)))),
         start);
     } catch (error) {
       if (error.status !== 401) fill(workoutCard, calmNotice(error, loadWorkout));

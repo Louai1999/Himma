@@ -330,3 +330,4 @@ details.inline-form summary { cursor: pointer; font-weight: 700; color: var(--fo
 .exercise-info .steps { margin: 0; padding-inline-start: 22px; display: grid; gap: 6px; }
 .exercise-info .tip { margin: 0; padding: 10px 12px; border-radius: var(--radius-sm); background: #FFF6E0; border-inline-start: 3px solid var(--gold); }
 .exercise-info .btn { justify-self: start; text-decoration: none; }
+.link-btn { background: none; border: 0; padding: 0; font: inherit; color: inherit; text-decoration: underline dotted; text-underline-offset: 3px; cursor: pointer; }
