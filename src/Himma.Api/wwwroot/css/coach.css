@@ -1,0 +1,28 @@
+/* Coach dashboard and the client's "My coach" screen. Builds on admin.css and the app's components. */
+
+.coach-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+/* ---------- Attention chips ---------- */
+.chips { display: inline-flex; flex-wrap: wrap; gap: 4px; }
+.chip { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: .78rem; font-weight: 700; white-space: nowrap; }
+.chip-ok { background: var(--forest-pale); color: var(--forest); }
+.chip-warn { background: var(--gold-pale); color: #7A5A12; }
+.chip-alert { background: #FBEDEB; color: var(--danger); }
+
+.attention-card { border: 1px solid var(--gold-pale); }
+
+/* ---------- Invite ---------- */
+.invite-code {
+  margin: 0; padding: 14px; text-align: center;
+  font-size: 2rem; letter-spacing: .2em;
+  background: var(--forest-pale); border-radius: var(--radius-sm); user-select: all;
+}
+.invite-link { overflow-wrap: anywhere; text-align: center; margin: 0; }
+
+/* ---------- Messages ---------- */
+.messages .item { align-items: flex-start; }
+.coach-message { border-inline-start: 3px solid var(--forest); padding-inline-start: 10px; }
+.coach-message.unread { border-color: var(--gold); }
+
+/* ---------- Joining a coach (client side) ---------- */
+.consent-list { list-style: disc; padding-inline-start: 22px; margin: 0; }

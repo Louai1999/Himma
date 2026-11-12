@@ -19,6 +19,7 @@ import * as records from './features/records.js';
 import * as volume from './features/volume.js';
 import { syncPush } from './push.js';
 import { showEmailBanner } from './features/recovery.js';
+import * as coach from './features/coach.js';
 
 const root = document.getElementById('app');
 document.title = t('هِمّة');
@@ -34,6 +35,7 @@ const TABS = [
 onSessionExpired(() => showAuth(t('انتهت الجلسة. سجّل الدخول مرة أخرى.')));
 on('signed-out', (message) => showAuth(message));
 
+coach.rememberInviteFromUrl();
 registerServiceWorker();
 start();
 
@@ -76,10 +78,12 @@ function showApp(auth) {
     nav,
     main);
 
-  startRouter({ mainEl: main, navEl: nav, tabs: TABS, hidden: { session: session.mount, supplements: supplements.mount, records: records.mount, volume: volume.mount }, parentTabs: { session: 'workouts', supplements: 'today', records: 'workouts', volume: 'workouts' } });
+  startRouter({ mainEl: main, navEl: nav, tabs: TABS, hidden: { session: session.mount, supplements: supplements.mount, records: records.mount, volume: volume.mount, coach: coach.mount, join: coach.joinMount }, parentTabs: { session: 'workouts', supplements: 'today', records: 'workouts', volume: 'workouts', coach: 'profile', join: 'profile' } });
   startWaterReminder();
   syncPush();
   showEmailBanner(auth.user);
+  coach.showCoachBanner();
+  coach.openPendingInvite();
 }
 
 function registerServiceWorker() {

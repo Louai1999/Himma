@@ -23,9 +23,21 @@ public static class AuditActions
     public const string SystemPurge = "system.purge";
     public const string SelfDelete = "user.self_delete";
     public const string SelfExport = "user.export";
+    public const string SetCoach = "admin.set_coach";
+    public const string RemoveCoach = "admin.remove_coach";
+    public const string CoachViewClient = "coach.view_client";
+    public const string CoachViewMeals = "coach.view_meals";
+    public const string CoachMessage = "coach.message";
+    public const string CoachAssignPlan = "coach.assign_plan";
+    public const string CoachRemoveClient = "coach.remove_client";
+    public const string JoinCoach = "user.join_coach";
+    public const string LeaveCoach = "user.leave_coach";
 
     public static readonly string[] All =
-        [ViewUser, ViewMeals, ExportUser, Suspend, Reactivate, SoftDelete, Restore, Purge, ReauthFailed, ResetPassword, SystemPurge, SelfDelete, SelfExport];
+        [
+            ViewUser, ViewMeals, ExportUser, Suspend, Reactivate, SoftDelete, Restore, Purge, ReauthFailed, ResetPassword, SystemPurge, SelfDelete, SelfExport,
+            SetCoach, RemoveCoach, CoachViewClient, CoachViewMeals, CoachMessage, CoachAssignPlan, CoachRemoveClient, JoinCoach, LeaveCoach,
+        ];
 }
 
 /// <summary>
@@ -35,6 +47,9 @@ public static class AuditActions
 public sealed class AuditLogger(AppDbContext db, IHttpContextAccessor httpContextAccessor)
 {
     public const string SystemActor = "system";
+
+    /// <summary>Coaches are ordinary users with a coach package, so their role is taken from the action.</summary>
+    public const string CoachActorRole = "Coach";
     private const int MaxDetailsLength = 4000;
 
     /// <summary>Logs an action by the signed-in user of the current request.</summary>
@@ -43,7 +58,9 @@ public sealed class AuditLogger(AppDbContext db, IHttpContextAccessor httpContex
         var http = httpContextAccessor.HttpContext;
         var user = http?.User;
         var actorId = user?.FindFirstValue(HimmaClaims.Subject) ?? "anonymous";
-        var actorRole = user?.IsInRole(Roles.Admin) == true ? Roles.Admin : Roles.User;
+        var actorRole = user?.IsInRole(Roles.Admin) == true ? Roles.Admin
+            : action.StartsWith("coach.", StringComparison.Ordinal) ? CoachActorRole
+            : Roles.User;
         return SaveAsync(actorId, actorRole, action, targetUserId, details, http?.Connection.RemoteIpAddress?.ToString(), cancellationToken);
     }
 

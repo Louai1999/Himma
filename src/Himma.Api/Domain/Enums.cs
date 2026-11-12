@@ -27,3 +27,5 @@ public enum DayKey { Sat, Sun, Mon, Tue, Wed, Thu, Fri }
 public enum CoachRole { User, Assistant }
 
 public enum SupplementUnit { Gram, Scoop, Capsule, Tablet, Ml }
+
+public enum CoachLinkStatus { Active, Ended }

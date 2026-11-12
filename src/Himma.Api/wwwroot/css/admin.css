@@ -1,7 +1,7 @@
 /* Admin dashboard: the app's look, a little denser and wider. */
 
 .app.admin { max-width: 1120px; }
-.admin-tabs { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.admin-tabs { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .admin .card { padding: 14px; }
 
 .stat-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }

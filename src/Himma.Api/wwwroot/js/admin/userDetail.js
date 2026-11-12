@@ -12,6 +12,7 @@ import { downloadJson } from '../ui/download.js';
 import { navigate } from '../router.js';
 import { statusBadge, stat, percent } from './labels.js';
 import { openPasswordAction } from './actions.js';
+import { coachPackageCard } from './coaches.js';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -26,6 +27,7 @@ export function mount(view, [id]) {
 function render(body, user, reload) {
   add(body,
     accountCard(user),
+    coachPackageCard(user),
     profileCard(user),
     adherenceCard(user),
     h('div', { class: 'grid-2 wide-only' }, weightCard(user), workoutCard(user)),
@@ -66,11 +68,11 @@ function accountCard(user) {
       }, icon('copy', 16), t('تصدير بياناته (JSON)'))));
 }
 
-function fact(label, value) {
+export function fact(label, value) {
   return h('div', { class: 'fact' }, h('dt', { text: label }), h('dd', { text: value }));
 }
 
-function profileCard(user) {
+export function profileCard(user) {
   const card = h('section', { class: 'card' }, h('h2', { text: t('الملف الشخصي والأهداف') }));
   if (!user.profile) {
     add(card, h('p', { class: 'muted', text: t('لم يُعدّ الملف الشخصي بعد.') }));
@@ -93,7 +95,7 @@ function profileCard(user) {
   return card;
 }
 
-function adherenceCard(user) {
+export function adherenceCard(user) {
   const a = user.adherence30;
   return h('section', { class: 'card' },
     h('h2', { text: t('الالتزام في آخر 30 يوماً') }),
@@ -109,7 +111,7 @@ function adherenceCard(user) {
         ring({ value: a.waterAdherencePercent, max: 100, label: t('الماء'), sub: '%', color: 'var(--water)' })));
 }
 
-function weightCard(user) {
+export function weightCard(user) {
   const change = user.weightChange30Kg;
   return h('section', { class: 'card' },
     h('h2', { text: t('الوزن في آخر 30 يوماً') }),
@@ -122,7 +124,7 @@ function weightCard(user) {
     }));
 }
 
-function workoutCard(user) {
+export function workoutCard(user) {
   const w = user.workouts;
   return h('section', { class: 'card' },
     h('h2', { text: t('الالتزام بالتمارين') }),
@@ -134,7 +136,7 @@ function workoutCard(user) {
     w.compliancePercent !== null && ring({ value: w.compliancePercent, max: 100, label: t('نسبة الالتزام'), sub: '%', color: 'var(--rust)' }));
 }
 
-function lastDaysCard(user) {
+export function lastDaysCard(user) {
   const target = user.targets?.targetCalories ?? null;
   return h('section', { class: 'card' },
     h('h2', { text: t('السعرات في آخر 14 يوماً') }),

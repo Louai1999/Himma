@@ -25,6 +25,15 @@ export const auditActions = {
   'system.purge': t('حذف نهائي تلقائي'),
   'user.self_delete': t('المستخدم حذف حسابه'),
   'user.export': t('المستخدم صدّر بياناته'),
+  'admin.set_coach': t('تفعيل أو تعديل باقة مدرب'),
+  'admin.remove_coach': t('إلغاء باقة مدرب'),
+  'coach.view_client': t('المدرب عرض بيانات متدرب'),
+  'coach.view_meals': t('المدرب عرض وجبات متدرب'),
+  'coach.message': t('المدرب أرسل رسالة'),
+  'coach.assign_plan': t('المدرب أرسل خطة تمرين'),
+  'coach.remove_client': t('المدرب أنهى تدريب متدرب'),
+  'user.join_coach': t('المستخدم انضم إلى مدرب'),
+  'user.leave_coach': t('المستخدم ترك مدربه'),
 };
 
 export const percent = (value) => (value === null || value === undefined ? '—' : `${fmt(value)}%`);
