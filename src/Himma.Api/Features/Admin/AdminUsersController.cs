@@ -135,7 +135,7 @@ public sealed class AdminUsersController(
             month.Weights,
             month.Weights.Count >= 2 ? Math.Round(month.Weights[^1].WeightKg - month.Weights[0].WeightKg, 1) : null,
             twoWeeks.Daily,
-            await WorkoutComplianceAsync(user.Id, today, cancellationToken),
+            await metrics.WorkoutComplianceAsync(user.Id, today, cancellationToken),
             user.EmailConfirmed,
             user.MustChangePassword);
     }
@@ -182,26 +182,5 @@ public sealed class AdminUsersController(
         await audit.WriteAsync(AuditActions.ExportUser, user.Id, new { username = user.UserName }, cancellationToken);
         Response.Headers.ContentDisposition = $"attachment; filename=himma-export-{user.UserName}-{ApiDate.UtcToday:yyyy-MM-dd}.json";
         return Ok(data);
-    }
-
-    private async Task<WorkoutCompliance> WorkoutComplianceAsync(string userId, DateOnly today, CancellationToken cancellationToken)
-    {
-        var activePlan = await db.WorkoutPlans.AsNoTracking()
-            .Where(p => p.UserId == userId && p.IsActive)
-            .Select(p => new { p.Name, TrainingDays = p.Days.Count(d => !d.IsRest) })
-            .FirstOrDefaultAsync(cancellationToken);
-
-        var windowStart = today.AddDays(-(AdminMetricsService.WindowDays - 1));
-        var completed = await db.WorkoutSessions.AsNoTracking()
-            .CountAsync(s => s.UserId == userId && s.CompletedAtUtc != null && s.Date >= windowStart && s.Date <= today, cancellationToken);
-
-        var perWeek = activePlan?.TrainingDays ?? 0;
-        var planned = (int)Math.Round(perWeek * AdminMetricsService.WindowDays / 7.0);
-        return new WorkoutCompliance(
-            activePlan?.Name,
-            perWeek,
-            completed,
-            planned,
-            planned > 0 ? Math.Min(100, Math.Round(100.0 * completed / planned, 1)) : null);
     }
 }

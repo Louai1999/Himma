@@ -31,7 +31,8 @@ public sealed class AdminMetricsService(AppDbContext db, HistoryService history)
     public IQueryable<ApplicationUser> Subscribers() =>
         db.Users.Where(u => !db.UserRoles.Any(ur => ur.UserId == u.Id && db.Roles.Any(r => r.Id == ur.RoleId && r.Name == Roles.Admin)));
 
-    public async Task<Dictionary<string, UserMetrics>> ComputeAsync(IReadOnlyCollection<string> userIds, DateOnly today, CancellationToken cancellationToken)
+    /// <param name="windowDays">Days the adherence and consistency numbers cover (the streak always looks further back).</param>
+    public async Task<Dictionary<string, UserMetrics>> ComputeAsync(IReadOnlyCollection<string> userIds, DateOnly today, CancellationToken cancellationToken, int windowDays = WindowDays)
     {
         var ids = userIds.Distinct().ToList();
         if (ids.Count == 0)
@@ -39,7 +40,7 @@ public sealed class AdminMetricsService(AppDbContext db, HistoryService history)
             return [];
         }
 
-        var windowStart = today.AddDays(-(WindowDays - 1));
+        var windowStart = today.AddDays(-(windowDays - 1));
         var streakStart = today.AddDays(-StreakLookbackDays);
 
         var mealDays = await db.MealEntries.AsNoTracking()
@@ -80,7 +81,7 @@ public sealed class AdminMetricsService(AppDbContext db, HistoryService history)
 
             profiles.TryGetValue(id, out var profile);
             var targets = profile is null ? null : TargetCalculator.Calculate(profile);
-            var summary = AdherenceCalculator.Summarize(dayTotals, today, WindowDays, targets, thresholds);
+            var summary = AdherenceCalculator.Summarize(dayTotals, today, windowDays, targets, thresholds);
 
             result[id] = new UserMetrics(
                 AdherenceCalculator.Streak(meals.Select(m => m.Date), today),
@@ -92,6 +93,28 @@ public sealed class AdminMetricsService(AppDbContext db, HistoryService history)
                 profile?.Goal);
         }
         return result;
+    }
+
+    /// <summary>Completed workouts against the active plan's training days over the last 30 days.</summary>
+    public async Task<WorkoutCompliance> WorkoutComplianceAsync(string userId, DateOnly today, CancellationToken cancellationToken)
+    {
+        var activePlan = await db.WorkoutPlans.AsNoTracking()
+            .Where(p => p.UserId == userId && p.IsActive)
+            .Select(p => new { p.Name, TrainingDays = p.Days.Count(d => !d.IsRest) })
+            .FirstOrDefaultAsync(cancellationToken);
+
+        var windowStart = today.AddDays(-(WindowDays - 1));
+        var completed = await db.WorkoutSessions.AsNoTracking()
+            .CountAsync(s => s.UserId == userId && s.CompletedAtUtc != null && s.Date >= windowStart && s.Date <= today, cancellationToken);
+
+        var perWeek = activePlan?.TrainingDays ?? 0;
+        var planned = (int)Math.Round(perWeek * WindowDays / 7.0);
+        return new WorkoutCompliance(
+            activePlan?.Name,
+            perWeek,
+            completed,
+            planned,
+            planned > 0 ? Math.Min(100, Math.Round(100.0 * completed / planned, 1)) : null);
     }
 
     public async Task<AdminOverview> OverviewAsync(DateOnly today, CancellationToken cancellationToken)

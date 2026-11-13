@@ -11,6 +11,7 @@ import * as overview from './overview.js';
 import * as users from './users.js';
 import * as userDetail from './userDetail.js';
 import * as audit from './audit.js';
+import * as coaches from './coaches.js';
 
 // Admin dashboard. Same sign-in as the app, but only accounts with the Admin role get in;
 // the server enforces the role on every /api/admin call as well.
@@ -21,6 +22,7 @@ document.title = `${t('هِمّة')} - ${t('لوحة المدير')}`;
 const TABS = [
   { key: 'overview', label: t('نظرة عامة'), icon: 'history', mount: overview.mount },
   { key: 'users', label: t('المشتركون'), icon: 'profile', mount: users.mount },
+  { key: 'coaches', label: t('المدربون'), icon: 'workouts', mount: coaches.mount },
   { key: 'audit', label: t('سجل المراجعة'), icon: 'calendar', mount: audit.mount },
 ];
 

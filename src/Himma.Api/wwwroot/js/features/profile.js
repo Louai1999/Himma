@@ -12,6 +12,7 @@ import { openModal } from '../ui/modal.js';
 import { downloadJson } from '../ui/download.js';
 import { startWaterReminder } from './water.js';
 import { pushControls, forgetPushDevice } from '../push.js';
+import { coachCard } from './coach.js';
 import { emailCard } from './recovery.js';
 
 /** The profile with its targets, or null when the user has not filled it yet. */
@@ -48,6 +49,7 @@ export function mount(view) {
     h('header', { class: 'view-head' }, h('h1', { text: t('حسابي') })),
     profileCard,
     targetsCard,
+    coachCard(),
     reminderCard(),
     accountCard(),
     emailCard(),

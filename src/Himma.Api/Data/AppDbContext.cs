@@ -39,6 +39,9 @@ public abstract class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<WorkoutSetLog> WorkoutSetLogs => Set<WorkoutSetLog>();
     public DbSet<CoachMessage> CoachMessages => Set<CoachMessage>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+    public DbSet<CoachAccount> CoachAccounts => Set<CoachAccount>();
+    public DbSet<CoachClient> CoachClients => Set<CoachClient>();
+    public DbSet<CoachNote> CoachNotes => Set<CoachNote>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -64,6 +67,7 @@ public abstract class AppDbContext : IdentityDbContext<ApplicationUser>
         configurationBuilder.Properties<DayKey>().HaveConversion<string>().HaveMaxLength(8);
         configurationBuilder.Properties<CoachRole>().HaveConversion<string>().HaveMaxLength(16);
         configurationBuilder.Properties<SupplementUnit>().HaveConversion<string>().HaveMaxLength(16);
+        configurationBuilder.Properties<CoachLinkStatus>().HaveConversion<string>().HaveMaxLength(16);
     }
 
     private sealed class UtcDateTimeConverter() : ValueConverter<DateTime, DateTime>(

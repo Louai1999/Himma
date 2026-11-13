@@ -4,6 +4,7 @@ using FluentValidation;
 using Himma.Api.Data;
 using Himma.Api.Features.Account;
 using Himma.Api.Features.Admin;
+using Himma.Api.Features.Coaching;
 using Himma.Api.Features.History;
 using Himma.Api.Features.Supplements;
 using Himma.Api.Infrastructure.Email;
@@ -55,6 +56,7 @@ builder.Services.AddScoped<PasswordReauthentication>();
 builder.Services.AddScoped<AccountLifecycleService>();
 builder.Services.AddScoped<UserDataExporter>();
 builder.Services.AddScoped<AdminMetricsService>();
+builder.Services.AddScoped<CoachingService>();
 builder.Services.AddHostedService<ScheduledPurgeService>();
 
 // Supplements and reminders (Web Push).

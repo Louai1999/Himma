@@ -117,6 +117,16 @@ public sealed class UserDataExporter(AppDbContext db)
             CoachMessages = await db.CoachMessages.AsNoTracking().Where(c => c.UserId == userId).OrderBy(c => c.CreatedAtUtc)
                 .Select(c => new { c.Role, c.Content, c.CreatedAtUtc })
                 .ToListAsync(cancellationToken),
+            CoachPackage = await db.CoachAccounts.AsNoTracking().Where(a => a.UserId == userId)
+                .Select(a => new { a.BusinessName, a.Bio, a.MaxClients, a.ActiveUntilUtc, a.CreatedAtUtc })
+                .FirstOrDefaultAsync(cancellationToken),
+            // As a client: who coached them and when (the coach's private notes belong to the coach, not here).
+            Coaches = await db.CoachClients.AsNoTracking().Where(l => l.ClientUserId == userId).OrderBy(l => l.JoinedAtUtc)
+                .Join(db.Users, l => l.CoachUserId, u => u.Id, (l, u) => new { Coach = u.DisplayName, l.Status, l.JoinedAtUtc, l.EndedAtUtc })
+                .ToListAsync(cancellationToken),
+            MessagesFromCoaches = await db.CoachNotes.AsNoTracking().Where(n => n.ClientUserId == userId).OrderBy(n => n.CreatedAtUtc)
+                .Select(n => new { n.Text, n.CreatedAtUtc, n.ReadAtUtc })
+                .ToListAsync(cancellationToken),
         };
     }
 }
